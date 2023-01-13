@@ -10,6 +10,7 @@ langchain = "^0.0.59"
 textworld = "^1.5.3"
 python-dotenv = "^0.21.0"
 openai = "^0.26.0"
+tiktoken = "^0.1.2"
 
 [tool.poetry.dev-dependencies]
 ipykernel = "^6.20.1"
