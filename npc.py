@@ -44,8 +44,10 @@ tools = [Tool("Play", send_command, send_command.__doc__)]
 prefix = """You are playing a text adventure game. Explore the world and discover its secrets!
 You have access to the following tools:"""
 suffix = """
-{chat_history}
-{input}
+---
+History:{chat_history}
+---
+Question: {input}
 {agent_scratchpad}"""
 
 prompt = ZeroShotAgent.create_prompt(
@@ -60,7 +62,7 @@ prompt = ZeroShotAgent.create_prompt(
 
 memory = ConversationBufferWindowMemory(
     memory_key="chat_history",
-    k=0,
+    k=1,
     )
 
 llm_chain = LLMChain(llm=llm, prompt=prompt,

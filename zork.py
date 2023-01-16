@@ -23,10 +23,12 @@ infos = textworld.EnvInfos(
     inventory=True,    # Text describing the player's inventory.
     max_score=True,   # Maximum score obtainable in the game.
     score=True,       # Score obtained so far.
+    
 )
 env = textworld.start('./zork1.z5', infos=infos)
 
-def go(env):
+
+def go(env, func, max_steps=10, interactive=False, secs=1):
     game_state = env.reset()
     try:
         done = False
@@ -34,11 +36,20 @@ def go(env):
         while not done:
             i += 1
             print("#"*60, i)
-            scene = game_state.feedback
-            print(scene)
-            command = input(">")
-            print(">",command)
-            game_state, reward, done = env.step(command)
+            description = "" if game_state.description == game_state.feedback else f"{game_state.description}"
+            scene = f"""{description}{game_state.feedback}
+(Score: {game_state.score}/{game_state.max_score}, Moves: {game_state.moves}, DONE: {done})
+"""
+            if interactive:
+                print(scene)
+                command = input(">")
+            else:
+                command = func(scene)
+                print(">",command)
+            game_state, score, done = env.step(command)
+            sleep(secs)
+            if i >= max_steps:
+                break
         env.render()  # Final message.
     except KeyboardInterrupt:
         pass
@@ -47,10 +58,10 @@ def go(env):
 
     print("Played {} steps, scoring {} points.".format(game_state.moves, game_state.score))
     understood_commmands = game_state.moves / i
-    print("Percentage of commands understood: {:.2f}%".format(100 * understood_commmands))
+    print("Percentage of commands understood: {:.2f}%".format(* understood_commmands))
 
 if __name__ == "__main__":
-    go(env)
+    go(env, lambda x: "look", interactive=True)
 
 
 
