@@ -2,20 +2,44 @@
 
 ## FIX
 - insert thought traces into the memory at each turn instead of "Agent stopped due to max iterations."
-- build more formal versions of `npc` and `go`
+[] build more formal versions of `npc` and `go`
 
 ## ADD
-- tools for thinking about the world
-- long-term memory storage / data augmentation
-- goal management
-- prompt wishlist based on long and short term memory and goals
-
+[] tools for thinking about the world
+[] translate tool for making likely commands
+[] long-term memory storage / data augmentation
+[] goal management
+[] prompt wishlist based on long and short term memory and goals
+[] different characters/roles
 ## Interface
-- map of the world with mermaid
-- visualize scene with diffusion
-- html display with 
-    - scene image
-    - scene text
-    - thoughts
-    - actions 
-    - metadata
+[] map of the world with mermaid
+[] visualize scene with diffusion
+[] html display with 
+    [] scene image
+    [] scene text
+    [] thoughts
+    [] actions 
+    [] metadata
+
+
+## Strat
+
+I think right now my strategy for architecting a better NPC is this:
+- `Game` will be a class that hholds the environment and the agent
+- `Game` will be structured as a conversation between the agent and the environment
+- the agent will not have access to Play except as a response in the conversation
+- the agent will have access to the environment directly through:
+    - a Look tool that accesses the `game_state.description`
+    - an Inventory tool that accesses the `game_state.inventory`
+    - a Status tool that accesses the `game_state.score` and `game_state.moves`
+- the agent will have other tools that don't access the game:
+    - a Think tool that allows it to recursively consider its observations
+    - a Notes tool to keep an append-only record of thoughts between agent iterations
+- the agent's memory will be built through conversation turns, so it will remember what has happened in the game world but not its internal process
+- the agent will have a goal that it will try to achieve, and an intermediate score it will try to maximize
+
+
+ideas for other tools:
+- a Translate tool that will take an intention and translate it into a likely command
+- a Hypothetical tool that will imagine possible scenarios and their outcomes
+- a Plan tool that will take a goal and a hypothetical and plan a sequence of actions to achieve the goal
