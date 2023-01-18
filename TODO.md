@@ -1,8 +1,8 @@
 # What do i need to do now?
 
 ## FIX
-- insert thought traces into the memory at each turn instead of "Agent stopped due to max iterations."
-[] build more formal versions of `npc` and `go`
+[x] insert thought traces into the memory at each turn instead of "Agent stopped due to max iterations."
+[x] build more formal versions of `npc` and `go`
 
 ## ADD
 [] tools for thinking about the world
@@ -11,9 +11,10 @@
 [] goal management
 [] prompt wishlist based on long and short term memory and goals
 [] different characters/roles
-## Interface
+## UI
 [] map of the world with mermaid
 [] visualize scene with diffusion
+[] interactivity with prompt/goal setting
 [] html display with 
     [] scene image
     [] scene text
@@ -43,3 +44,16 @@ ideas for other tools:
 - a Translate tool that will take an intention and translate it into a likely command
 - a Hypothetical tool that will imagine possible scenarios and their outcomes
 - a Plan tool that will take a goal and a hypothetical and plan a sequence of actions to achieve the goal
+
+
+## UI
+
+I'm trying to keep it simple with just a lightweight single page app. The UI will, at first, use a scene-based approach that will show the text of each turn as it's generated. The different UI elements will be:
+- the scene text (from game)
+- the scene image (generated from Replicate API)
+- the command box (for the agent to enter a command)
+- the history of scene texts and commands
+- the agent's thoughts (from the agent's Notes tool)
+
+The image will be a full-screen background and the other info will be displayed in a CSS grid overlay using an old-school VTT font. On large screens it will be one page of info, on mobile the blocks will be stacked.
+

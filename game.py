@@ -20,12 +20,12 @@ def format_scene(game_state):
 
 def format_intermediate_steps(steps):
     notes =  "\n".join([f"{i+1}. {step[0][2]}" for i, step in enumerate(steps)])
-    print(notes)
+    # print(notes)
     return notes
 
 # First let's sketch it out, ignoring low-level details
 class Game():
-    def __init__(self, game_file, agent_turns, max_steps=10):
+    def __init__(self, game_file, agent_turns=5, max_steps=10):
         infos = textworld.EnvInfos(
             feedback=True,    # Response from the game after typing a text command.
             description=True, # Text describing the room the player is currently in.
@@ -34,6 +34,7 @@ class Game():
             score=True,       # Score obtained so far.
         )
         self.world  = textworld.start(game_file, infos=infos)
+        self.world.seed = 42
         self.tools = self.get_available_tools()
         self.agent = NPC(self.tools, agent_turns)
         self.max_steps = max_steps
@@ -60,7 +61,7 @@ class Game():
             Tool(
                 name="Play",
                 description="Send a command to the game and receive feedback.",
-                func=lambda x: format_scene(self.step(x))
+                func=lambda x: format_scene(self.step_world(x))
             ),
             Tool(
                 name="Check notes",
@@ -76,10 +77,20 @@ class Game():
         ]
         return tools
         
-    def step(self, command):
+    def step_world(self, command):
         """Send the agent's command to the game world and receive feedback."""
         game_state, _, _ = self.world.step(command)
         return game_state
+    
+    def step_agent(self):
+        game_state = self.world.state
+        """Send the game state to the agent and receive the agent's command."""
+        scene = format_scene(game_state)
+        print(scene)
+        response = self.agent.act(scene)
+        command = response['output']
+        self.notes = format_intermediate_steps(response['intermediate_steps'])
+        return command
 
     def run(self):
         """Step through the game loop, sending the agent's intentions to the game world and receiving feedback."""
@@ -90,15 +101,9 @@ class Game():
         while not done:
             i += 1
             print("#"*50, i)
-            scene = format_scene(game_state)
-            print(scene)
             # This is where the action happens
-            response = self.agent.act(scene)
-            command = response['output']
-            self.notes = format_intermediate_steps(response['intermediate_steps'])
-            print(">",command)
-            game_state = self.step(command)
-
+            command = self.step_agent()
+            game_state = self.step_world(command)
             if i >= self.max_steps:
                 break
 
@@ -120,5 +125,5 @@ if __name__ == "__main__":
     game_file = args.game_file
     max_steps = args.max_steps
     
-    game = Game(game_file=game_file, max_steps=max_steps, agent_turns=7)
+    game = Game(game_file=game_file, max_steps=max_steps, agent_turns=5)
     game.run()
