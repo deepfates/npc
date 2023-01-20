@@ -12,6 +12,7 @@ python-dotenv = "^0.21.0"
 openai = "^0.26.0"
 tiktoken = "^0.1.2"
 Flask = {extras = ["async"], version = "^2.2.2"}
+replicate = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
 ipykernel = "^6.20.1"
