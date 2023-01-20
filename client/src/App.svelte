@@ -36,10 +36,8 @@ function sendCommand() {
 		.then((response) => response.json()) // parse the JSON from the server
 		.then((data) => {
 			output = data.feedback;
-			// we need to replace '\n' with <br> for the output
-			output = output.replace(/\\n/g, "<br>");
+			console.log(output)
 			background = data.image_url;
-			console.log("Output: " + output);
 		});
 }
 
@@ -51,6 +49,7 @@ function handleKeyDown(event) {
 
 	// start a game when the page loads
 	startGame();
+	// sendCommand(command)
 </script>
 
 <!-- Simple text adventure UI with a textinput, send button, and output window -->
@@ -88,7 +87,7 @@ function handleKeyDown(event) {
 		color: #ffe466;
 		font-family: 'VT323', monospace;
         font-size: 2rem;
-        text-shadow: 1px 1px 1px #4b3d00;
+        text-shadow: 1px 1px 1px #181300;
 
 	}
 	main {

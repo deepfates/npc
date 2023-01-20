@@ -7,17 +7,18 @@
 ## ADD
 [] tools for thinking about the world
 [] translate tool for making likely commands
-[] long-term memory storage / data augmentation
+[x] long-term memory storage / data augmentation
 [] goal management
 [] prompt wishlist based on long and short term memory and goals
 [] different characters/roles
 ## UI
 [] map of the world with mermaid
-[] visualize scene with diffusion
-[] interactivity with prompt/goal setting
-[] html display with 
-    [] scene image
-    [] scene text
+[x] visualize scene with diffusion
+[x] interactive game playing
+[] interactive prompt/goal setting
+[x] html display with 
+    [x] scene image
+    [x] scene text
     [] thoughts
     [] actions 
     [] metadata

@@ -25,7 +25,7 @@ style="background-image: url({background});"
         background-size: cover;
         background-repeat: no-repeat;
         background-position: center;
-        background-color: #4b3d00;
+        background-color: #181300;
         position: absolute;
         top: 0;
         left: 0;

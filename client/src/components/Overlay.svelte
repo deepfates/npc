@@ -4,7 +4,8 @@
 
 <style>
     .overlay {
-        background-color: rgba(0, 0, 0, 0.1);
+        box-shadow: inset 0 0 5em 1em #000;
+        background-color: rgba(0, 0, 0, 0.2);
         display: flex;
         flex-direction: column;
         justify-content: center;

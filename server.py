@@ -5,10 +5,11 @@ from typing import Dict
 from flask import Flask, send_from_directory
 from uuid import uuid4
 from game import Game
-from apps import DiffusionApp
+from apps import DiffusionApp, Summarizer
 
 app = Flask(__name__)
-diffusion = DiffusionApp()
+diffusion = DiffusionApp('sd2')
+summarizer = Summarizer()
 
 # Utilities for operating the game
 def get_game():
@@ -20,10 +21,12 @@ def get_game_state(game):
     return dict([item for item in game.world.state.items() if item[0] != 'location'])
 
 def get_prompt(game_state):
-    if game_state['feedback'] != '' and game_state['description'] not in game_state['feedback']:
-        prompt = game_state['description'] + game_state['feedback']
-    else:
-        prompt = game_state['description']
+    # if game_state['feedback'] != '' and game_state['description'] not in game_state['feedback']:
+    #     prompt = game_state['description'] + game_state['feedback']
+    # else:
+    prompt = game_state['description']
+    if len(prompt) > 230:
+        prompt = summarizer.run(prompt)
     return prompt
 
 games: Dict[str, Game] = {}
