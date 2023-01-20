@@ -58,3 +58,16 @@ I'm trying to keep it simple with just a lightweight single page app. The UI wil
 
 The image will be a full-screen background and the other info will be displayed in a CSS grid overlay using an old-school VTT font. On large screens it will be one page of info, on mobile the blocks will be stacked.
 
+### Thoughts UI
+How should I display the agent's thoughts? It depends largely whether I'm going to continue letting the agent have a Play tool. If I do, then its actions won't be recorded in the main game history, and it should be displayed as a parallel activity to the user panel. Maybe in a sidebar that appears when you toggle the agent on? If the agent doesn't have a Play tool, then it will be a part of the game history, and I can just display it in the main history panel.
+
+For now, it does have that tool, so I'll display it in a sidebar. I'll use a CSS grid to display the thoughts in a grid, and I'll use a CSS animation to fade in the thoughts as they're generated. Svelte has built-in animations that work along with #each and #if, so that should be easy as long as i follow the dataflow.
+
+Streaming things in will be a little harder, so maybe for now I'll just accept the intermediate_thoughts and display them once the agent is done? and then let the typing animation take over? 
+
+Oh, I also meant to separate the UI updates for text and for image. In fact, there's several updates that willbe happening on the frontend each turn, and it would be nice if those could be coordinated in a a cinematic way by the frontend. What I should be doing with the server is serving each piece of data async, and they can stream in to the frontend which can orchestrate them.
+
+In fact, maybe I shouldn't let the agent run on its own at all. The Play action is very satisfying if you can watch the way it thinks out loud, but I don't know how to key it into the rest of the game. I should make it so the agent can only think its little thoughts and suggest a next command. It might be dumber in this mode, but it won't have side effects on the world right away, and the user can decide whether to accept the suggestion or not.
+
+I think coupling the agent to the game state might actually be a bad idea? Only because I can't stream its text updates somewhere. But it's probably fine for now.
+

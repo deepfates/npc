@@ -52,9 +52,7 @@ async def step_world(session_id, command):
     game = games[session_id]
     game_state = game.step_world(command)
     game_state = get_game_state(game)
-    prompt = get_prompt(game_state)
-    image_url = await diffusion.get_image(prompt)
-    game_state['image_url'] = image_url
+   
     # print(game_state)
     return game_state
 
@@ -62,8 +60,8 @@ async def step_world(session_id, command):
 @app.route("/api/step_agent/<session_id>")
 async def step_agent(session_id):
     game = games[session_id]
-    command = game.step_agent()
-    return command
+    command, notes = game.step_agent()
+    return {"command": command, "notes": notes}
 
 @app.route("/api/get_notes/<session_id>")
 async def get_notes(session_id):
@@ -75,12 +73,18 @@ async def get_tools(session_id):
     game = games[session_id]
     return game.tools
 
-# API path that accepts text and sends back an image URL
-@app.route("/api/get_image/<text>")
-async def get_image_url(text):
-    resp = await diffusion.get_image(text)
+# API path that accepts JSON game_state and sends back an image URL
+@app.route("/api/get_image/<session_id>")
+async def get_image(session_id):
+    game = games[session_id]
+    game_state = get_game_state(game)
+    prompt = get_prompt(game_state)
+    print(prompt)
+    output = await diffusion.get_image(prompt)
+    resp = {'image_url': output[0]}
+    print(resp)
     return resp
-
+    
 
 # Path for our main Svelte page
 @app.route("/")

@@ -12,7 +12,7 @@ text in a large font with a transparent backgrond. This text should
 scroll vertically but have a hidden scrollbar and only be a fixed height -->
 <div transition:fade class="output">
     <Typewriter
-        delay={100}
+        delay={1000}
         interval={[1,1,2,3,5,8,13,21,34,55]}
     >
         {output}
@@ -24,7 +24,6 @@ scroll vertically but have a hidden scrollbar and only be a fixed height -->
         text-align: left;
         text-shadow: 1px 1px 1px #4b3d00;
         color: #ffe466;
-        font-size: 2rem;
         width: 100%;
         height: 100%;
         overflow-y: scroll;

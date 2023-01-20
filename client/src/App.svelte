@@ -4,10 +4,15 @@ import "the-new-css-reset/css/reset.css;"
 import History from './components/History.svelte';
 import Overlay from './components/Overlay.svelte';
 import Background from './components/Background.svelte';
+import { fade } from 'svelte/transition';
 
 let sessionId = "";
 let output = "";
 let background = "";
+let command = "Look around";
+let suggestion = "";
+let notes = "";
+let game_state = {};
 
 function startGame() {
 if (sessionId != "") {
@@ -26,18 +31,33 @@ fetch("./api/start")
 	});
 }
 
-let command = "Look around";        
 function sendCommand() {
+	if (command == "") {
+		command = suggestion
+		suggestion = ""
+	}
 	let sent = command
 	command = ""
+	suggestion = ""
 	background = ""
 	output = ""
+	notes = ""
+
+	// send command to server
 	fetch("./api/step_world/" + sessionId + "/" + sent)
 		.then((response) => response.json()) // parse the JSON from the server
 		.then((data) => {
+			game_state = data;
 			output = data.feedback;
 			console.log(output)
-			background = data.image_url;
+		}).then((data) => {
+			fetch("./api/get_image/" + sessionId)
+				.then((response) => response.json()) // parse the JSON from the server
+				.then((data) => {
+					background = data.image_url;
+					console.log(background)
+				});
+	
 		});
 }
 
@@ -45,11 +65,34 @@ function handleKeyDown(event) {
 	if (event.key === "Enter") {
 		sendCommand()
 	}
+	if (event.key === "Enter" && event.shiftKey) {
+		stepAgent()
+	}
 }
 
-	// start a game when the page loads
-	startGame();
-	// sendCommand(command)
+function stepAgent() {
+	if (command == "" && suggestion != "") {
+		sendCommand()
+	}
+	command = ""
+	notes = ""
+	fetch("./api/step_agent/" + sessionId)
+		.then((response) => response.json()) // parse the JSON from the server
+		.then((data) => {
+			console.log(data)
+			notes = data.notes
+			console.log(notes)
+			return data
+		}).then((data) => {
+				suggestion = data.command			
+		}
+	);
+}
+
+// start a game when the page loads
+startGame();
+//wait a second and then send the command
+setTimeout(sendCommand, 1500);
 </script>
 
 <!-- Simple text adventure UI with a textinput, send button, and output window -->
@@ -64,18 +107,22 @@ function handleKeyDown(event) {
 	{/if}
 	<Overlay>
 		<div class="interface">
-		<History output={output}/>
-		<!-- Command input and send button.
-		Need this to send when you hit enter as well as the button	-->
-		<div class="input">
-			<span>>&nbsp;</span>
-			<!-- svelte-ignore a11y-autofocus -->
-			<input autofocus bind:value={command} on:keydown={handleKeyDown} class="commandline"/>
-			<button on:click={sendCommand} class="input-button">↵</button>
+			<History output={output}/>
+			{#if notes}
+				<div transition:fade class="thoughts">
+					{notes}
+				</div>
+			{/if}
+			<div class="input">
+				<span>>&nbsp;</span>
+				<!-- svelte-ignore a11y-autofocus -->
+				<input autofocus placeholder={suggestion} bind:value={command} on:keydown={handleKeyDown} class="commandline"/>
+				<button on:click={sendCommand} class="input-button">↵</button>
+				<button on:click={stepAgent} class="input-button">⇥</button>
+			</div>
 		</div>
-	</div>
 	</Overlay>
-	</main>
+</main>
 
 <!-- Styled as an old terminal display with a background image pulled from API -->
 <style>
@@ -120,6 +167,7 @@ function handleKeyDown(event) {
 		outline: none;
 		margin: 0;
 		padding: 0;
+		width: 4rem;
 	}
 	.commandline {
         background-color: transparent;
@@ -140,6 +188,10 @@ function handleKeyDown(event) {
 		max-width: 95%;
 		height:62vh;
 		justify-content: space-between;
+	}
+
+	.thoughts {
+		font-size: 1.23rem;
 	}
 
 </style>
