@@ -85,7 +85,13 @@ class Summarizer():
     def __init__(self) -> None:
         self.llm = OpenAI(temperature=0.0, max_tokens=60)
         self.chain = load_summarize_chain(self.llm, chain_type="map_reduce")
+        self.cache = {}
 
     def run(self, text):
+        if text in self.cache:
+            return self.cache[text]
         doc = Document(page_content=text)
-        return self.chain.run([doc])
+        summary = self.chain.run([doc])
+        self.cache[text] = summary
+        return summary
+        

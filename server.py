@@ -2,7 +2,7 @@
 # It serves the static files for the Svelte frontend and the API for the game.
 # It can be used to interactively play the game, or to 
 from typing import Dict
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, request
 from uuid import uuid4
 from game import Game
 from apps import DiffusionApp, Summarizer
@@ -36,7 +36,8 @@ games: Dict[str, Game] = {}
 def start():
     session_id = str(uuid4())
     games[session_id] = get_game()
-    resp = {"sessionId": session_id}
+    shem = games[session_id].shem
+    resp = {"sessionId": session_id, "shem": shem}
     print(resp)
     return resp
 
@@ -53,7 +54,6 @@ async def step_world(session_id, command):
     game_state = game.step_world(command)
     game_state = get_game_state(game)
    
-    # print(game_state)
     return game_state
 
 # API paths for the bot
@@ -73,7 +73,6 @@ async def get_tools(session_id):
     game = games[session_id]
     return game.tools
 
-# API path that accepts JSON game_state and sends back an image URL
 @app.route("/api/get_image/<session_id>")
 async def get_image(session_id):
     game = games[session_id]
@@ -85,6 +84,17 @@ async def get_image(session_id):
     print(resp)
     return resp
     
+# API route for making a new NPC with a different shem
+# Need to use JSON here rather than string parameters
+@app.route("/api/set_shem/<session_id>", methods=['POST'])
+async def set_shem(session_id):
+    game = games[session_id]
+    shem = request.json['shem']
+    game.new_npc(shem)
+    resp = {"sessionId": session_id, "shem": shem}
+    print(resp)
+    return resp
+
 
 # Path for our main Svelte page
 @app.route("/")

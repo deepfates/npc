@@ -25,7 +25,8 @@ def format_intermediate_steps(steps):
 
 # First let's sketch it out, ignoring low-level details
 class Game():
-    def __init__(self, game_file, agent_turns=5, max_steps=10):
+    def __init__(self, game_file, agent_turns=5, max_steps=10, shem=""):
+        self.agent_turns = agent_turns
         infos = textworld.EnvInfos(
             feedback=True,    # Response from the game after typing a text command.
             description=True, # Text describing the room the player is currently in.
@@ -36,7 +37,8 @@ class Game():
         self.world  = textworld.start(game_file, infos=infos)
         self.world.seed = 42
         self.tools = self.get_available_tools()
-        self.agent = NPC(self.tools, agent_turns)
+        self.agent = NPC(self.tools, self.agent_turns, shem)
+        self.shem = self.agent.prompt.template
         self.max_steps = max_steps
         self.notes = "No notes yet"
 
@@ -75,6 +77,15 @@ class Game():
             )
         ]
         return tools
+
+    def new_npc(self, shem=""):
+        """Create a new NPC agent."""
+        print("Creating new NPC agent")
+        self.agent = {}
+        print(self.agent)
+        self.agent = NPC(self.tools, self.agent_turns, shem)
+        self.shem = self.agent.prompt.template
+        print(self)
         
     def step_world(self, command):
         """Send the agent's command to the game world and receive feedback."""

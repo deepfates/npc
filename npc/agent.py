@@ -42,7 +42,7 @@ class NPCAgent(ZeroShotAgent):
         return PromptTemplate(template=template, input_variables=input_variables)
 
 class NPC:
-    def __init__(self, tools=[], n_turns=3):
+    def __init__(self, tools=[], n_turns=3, shem=""):
         self.memory = ConversationBufferWindowMemory(
             k=1,
             memory_key="chat_history",
@@ -65,6 +65,10 @@ class NPC:
                 "agent_scratchpad"
                 ],
         )
+
+        if shem:
+            self.prompt.template = shem
+        
         self.chain = LLMChain(
             llm=self.llm,
             prompt=self.prompt,
