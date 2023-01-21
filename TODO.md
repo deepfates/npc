@@ -19,9 +19,10 @@
 [x] html display with 
     [x] scene image
     [x] scene text
-    [] thoughts
-    [] actions 
+    [x] thoughts
+    [x] actions 
     [] metadata
+    [x] shem
 
 
 ## Strat
