@@ -15,6 +15,8 @@ I will dockerize this soon, but for now you can install it locally.
 
 The demo requires a game file for Zork. You can download the game file from [the Internet Archive](https://archive.org/download/Zork1Release88Z-machineFile/zork1.z5).
 
+You will also need an API key from [OpenAI](https://openai.com/api/pricing/) for GPT-3 predictions, and an API key from [Replicate](https://replicate.com/pricing) for image generation. 
+
 ### Build from source
 
 To run the demo, you need a version of Python 3.8 or 3.9 and [Poetry](https://python-poetry.org/). 
@@ -32,7 +34,16 @@ Then install the python dependencies:
 poetry install
 ```
 
-Finally, copy the `zork1.z5` file into the `npc` directory.
+Next, create a `.env` file in the `npc` directory and add
+   
+```bash
+OPENAI_API_KEY=<your openai api key>
+REPLICATE_API_KEY=<your replicate api key>
+```
+<small>(without the `<` and `>` marks)</small>
+
+
+Finally, copy the `zork1.z5` file into the `npc` directory. 
 
 ## Usage
 
