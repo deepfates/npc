@@ -76,6 +76,14 @@ To develop on the backend, you need a version of Python 3.8 or 3.9 and [Poetry](
 
 While running `server.py`, your changes to the backend will be reflected in the app at `localhost:5000`. The server will restart each time you save edits, so if you're running the frontend you'll need to refresh the page to get a new session ID.
 
+#### LLM agent
+
+The agent currently runs a modified ReAct loop. See the ReAct paper at https://arxiv.org/pdf/2210.03629.pdf for more details. 
+
+The agent is in the `npc/agent.py` file. It wraps the ReAct loop with a short buffer memory and a custom prompt template. The original functionality was to run a loop for a dozen iterations or so and let it interact with the pworld through a Play tool. This is currently turned off for the purposes of the demo, because the Play actions were invisible to the frontend. Now the agent takes up to 3 actions including Look and Inventory, then recommends a command. Prompt tuning is yet needed for this functionality to work well.
+
+The agent is built with LangChain. See their [excellent documentation](https://langchain.readthedocs.io/en/latest/modules/agents/how_to_guides.html) for more on the underlying functionality.
+
 ### Frontend
 
 To develop on the frontend, you need [Node.js](https://nodejs.org/en/) and [NPM](https://www.npmjs.com/).
@@ -103,3 +111,5 @@ Once the frontend is built, or while in develop mode, the app can be served by r
 The frontend is built using [Svelte](https://svelte.dev/). The main API calls and the input form are in the `App.svelte` file. The `components` directory contains display components. 
 
 Svelte compiles to javascript, so once the frontend is built, you can run the server without the frontend dependencies. The Flask backend will serve the frontend files from the `client/build` directory.
+
+The API functions in the main Svelte app are not very idiomatic. I think they should incorporte reactive assignment better. But they do the job for now.

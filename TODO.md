@@ -23,6 +23,7 @@
     [x] actions 
     [] metadata
     [x] shem
+    [] more Sveltey
 
 
 ## Strat
