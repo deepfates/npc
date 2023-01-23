@@ -11,15 +11,49 @@ This is a demo using a language model agent to play text adventure games like [Z
 
 ## Installation
 
-I will dockerize this soon, but for now you can install it locally.
-
 The demo requires a game file for Zork. You can download the game file from [the Internet Archive](https://archive.org/download/Zork1Release88Z-machineFile/zork1.z5).
 
 You will also need an API key from [OpenAI](https://openai.com/api/pricing/) for GPT-3 predictions, and an API key from [Replicate](https://replicate.com/pricing) for image generation. 
 
+### Run with Docker
+
+To run the demo with Docker, you need [Docker](https://www.docker.com/). 
+
+To install, clone the repo and enter the npc directory:
+
+```bash
+git clone https://github.com/deepfates/npc.git
+cd npc
+```
+
+Move the `zork1.z5` file into the `npc` directory.
+
+Next, create a `.env` file in the `npc` directory and add
+   
+```bash
+OPENAI_API_KEY=<your openai api key>
+REPLICATE_API_KEY=<your replicate api key>
+```
+<small>(without the `<` and `>` marks)</small>
+
+Finally, build the docker image:
+
+```bash
+docker build -t npc .
+```
+
+To run the demo, run:
+
+```bash
+docker run --network="host" -t npc
+```
+
+Then open `localhost:8080` in your browser.
+
+
 ### Build from source
 
-To run the demo, you need a version of Python 3.8 or 3.9 and [Poetry](https://python-poetry.org/). 
+To build the demo, you need a version of Python 3.8 or 3.9 and [Poetry](https://python-poetry.org/). 
 
 To install, clone the repo and enter the npc directory:
 

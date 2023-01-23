@@ -45,11 +45,11 @@ class Game():
     def get_available_tools(self):
         """Get the list of tools available in the game."""
         tools = [
-            Tool(
-                name="Look",
-                description="Check the game description",
-                func=lambda x: format_scene(self.world.state)
-            ),
+            # Tool(
+            #     name="Look",
+            #     description="Check the game description",
+            #     func=lambda x: format_scene(self.world.state)
+            # ),
             Tool(
                 name="Inventory",
                 description="Check your inventory",
