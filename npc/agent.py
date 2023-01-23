@@ -72,7 +72,7 @@ class NPC:
         self.chain = LLMChain(
             llm=self.llm,
             prompt=self.prompt,
-            verbose=True,
+            # verbose=True,
         )
 
         self.agent = NPCAgent(

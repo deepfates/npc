@@ -14,7 +14,7 @@ summarizer = Summarizer()
 
 # Utilities for operating the game
 def get_game():
-    game = Game(game_file='./zork1.z5', max_steps=1, agent_turns=3)
+    game = Game(game_file='./zork1.z5', max_steps=1, agent_turns=1)
     game.world.reset()
     return game
 
