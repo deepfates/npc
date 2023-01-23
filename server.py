@@ -5,10 +5,11 @@ from typing import Dict
 from flask import Flask, send_from_directory, request
 from uuid import uuid4
 from game import Game
-from apps import DiffusionApp, Summarizer
+from apps import DiffusionApp, Summarizer, DalleApp
 
 app = Flask(__name__)
 diffusion = DiffusionApp('sd2')
+dalle = DalleApp("256x256")
 summarizer = Summarizer()
 
 # Utilities for operating the game
@@ -25,7 +26,7 @@ def get_prompt(game_state):
     #     prompt = game_state['description'] + game_state['feedback']
     # else:
     prompt = game_state['description']
-    if len(prompt) > 230:
+    if len(prompt) > 800:
         prompt = summarizer.run(prompt)
     return prompt
 
@@ -79,8 +80,9 @@ async def get_image(session_id):
     game_state = get_game_state(game)
     prompt = get_prompt(game_state)
     print(prompt)
-    output = await diffusion.get_image(prompt)
-    resp = {'image_url': output[0]}
+    # output = await diffusion.get_image(prompt)
+    output = await dalle.get_image(prompt)
+    resp = {'image_url': output}
     print(resp)
     return resp
     
@@ -108,4 +110,5 @@ def home(path):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    from waitress import serve
+    serve(app, host="0.0.0.0", port=8080)

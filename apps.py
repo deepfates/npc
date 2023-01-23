@@ -1,7 +1,40 @@
 import replicate
-from dotenv import load_dotenv
-load_dotenv
+from openai import Image
 
+import os
+import time 
+from dotenv import load_dotenv
+load_dotenv()
+
+def get_dalle_template(text):
+    return f"{text} fantasy horror rpg, first person cinematic beautiful warm light #ffe466"
+
+class DalleApp:
+    def __init__(self, size="512x512"):
+        self.size = size
+        self.cache = {}
+
+    async def get_image(self, text):
+        start = time.time()
+
+        if text in self.cache:
+            print(f"Using cached image for {text}")
+            return self.cache[text]
+        print(f"Generating image for {text}")
+        response = Image.create(
+            prompt=get_dalle_template(text),
+            n=1,
+            size=self.size,
+            api_key=os.getenv("OPENAI_API_KEY"),
+            )
+        end = time.time()
+        print(f"Time to generate image: {end - start}")
+
+        url = response['data'][0]['url']
+        url = str(url)
+        self.cache[text] = url
+        
+        return url
 
 def get_template(token):
     def template(text):
@@ -74,12 +107,12 @@ class DiffusionApp:
         }
         output = self.version.predict(**inputs)
         self.cache[prompt] = output
-        return output
+        return output[0]
 
 from langchain.chains.summarize import load_summarize_chain
 from langchain.llms import OpenAI
 from langchain.docstore.document import Document
-  
+
 class Summarizer():
 
     def __init__(self) -> None:
