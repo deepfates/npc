@@ -110,5 +110,18 @@ def home(path):
 
 
 if __name__ == "__main__":
+    import argparse
     from waitress import serve
-    serve(app, host="0.0.0.0", port=8080)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug", action="store_true")
+    args = parser.parse_args()
+    debug = args.debug
+    
+    if debug:
+        app.run(debug=True,
+                host="0.0.0.0",
+                port=8080)  
+
+    else:
+       serve(app, host="0.0.0.0", port=8080)

@@ -91,7 +91,7 @@ To play the game, enter the `npc` directory and run the server:
 poetry run python server.py
 ```
     
-Then open `localhost:5000` in your browser.
+Then open `localhost:8080` in your browser.
 
 ### Run agent
 
@@ -108,7 +108,7 @@ The agent runs an internal loop on a prompt template. You can access this prompt
 
 To develop on the backend, you need a version of Python 3.8 or 3.9 and [Poetry](https://python-poetry.org/). Install the python environment as in the installation instructions.
 
-While running `server.py`, your changes to the backend will be reflected in the app at `localhost:5000`. The server will restart each time you save edits, so if you're running the frontend you'll need to refresh the page to get a new session ID.
+While running `server.py`, your changes to the backend will be reflected in the app at `localhost:8080`. The server will restart each time you save edits, so if you're running the frontend you'll need to refresh the page to get a new session ID.
 
 #### LLM agent
 
@@ -140,7 +140,7 @@ To build the frontend for production, run:
 npm run build
 ```
 
-Once the frontend is built, or while in develop mode, the app can be served by running the server as in the installation instructions. Your changes to the frontend will be reflected in the app at `localhost:5000`.
+Once the frontend is built, or while in develop mode, the app can be served by running the server as in the installation instructions. Your changes to the frontend will be reflected in the app at `localhost:8080`.
 
 The frontend is built using [Svelte](https://svelte.dev/). The main API calls and the input form are in the `App.svelte` file. The `components` directory contains display components. 
 
