@@ -50,11 +50,11 @@ class Game():
             #     description="Check the game description",
             #     func=lambda x: format_scene(self.world.state)
             # ),
-            Tool(
-                name="Inventory",
-                description="Check your inventory",
-                func=lambda x: self.world.state.inventory
-            ),
+            # Tool(
+            #     name="Inventory",
+            #     description="Check your inventory",
+            #     func=lambda x: self.world.state.inventory
+            # ),
             Tool(
                 name="Score",
                 description="Check your score",
@@ -65,11 +65,11 @@ class Game():
             #     description="Send a command to the game and receive feedback.",
             #     func=lambda x: format_scene(self.step_world(x))
             # ),
-            Tool(
-                name="Check notes",
-                description="Send an empty string here to get your notes from last game.",
-                func=lambda x: self.notes
-            ),
+            # Tool(
+            #     name="Check notes",
+            #     description="Send an empty string here to get your notes from last game.",
+            #     func=lambda x: self.notes
+            # ),
             Tool(
                 name="Think",
                 description="Think about your goals and the world. Use this when you can't find a valid tool",
