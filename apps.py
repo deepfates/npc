@@ -18,9 +18,9 @@ class DalleApp:
         start = time.time()
 
         if text in self.cache:
-            print(f"Using cached image for {text}")
+            # print(f"Using cached image for {text}")
             return self.cache[text]
-        print(f"Generating image for {text}")
+        # print(f"Generating image for {text}")
         response = Image.create(
             prompt=get_dalle_template(text),
             n=1,
@@ -28,7 +28,7 @@ class DalleApp:
             api_key=os.getenv("OPENAI_API_KEY"),
             )
         end = time.time()
-        print(f"Time to generate image: {end - start}")
+        # print(f"Time to generate image: {end - start}")
 
         url = response['data'][0]['url']
         url = str(url)
@@ -70,7 +70,7 @@ class DiffusionApp:
     async def get_image(self, text):
         clean_text = text.replace('\n', ' ').replace('\r', ' ').strip()
         prompt = self.template(clean_text)
-        print(prompt)
+        # print(prompt)
         if prompt in self.cache:
             return self.cache[prompt]
         inputs = {

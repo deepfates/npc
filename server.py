@@ -39,7 +39,7 @@ def start():
     games[session_id] = get_game()
     shem = games[session_id].shem
     resp = {"sessionId": session_id, "shem": shem}
-    print(resp)
+    # print(resp)
     return resp
 
 @app.route("/api/stop/<session_id>")
@@ -79,11 +79,11 @@ async def get_image(session_id):
     game = games[session_id]
     game_state = get_game_state(game)
     prompt = get_prompt(game_state)
-    print(prompt)
+    # print(prompt)
     # output = await diffusion.get_image(prompt)
     output = await dalle.get_image(prompt)
     resp = {'image_url': output}
-    print(resp)
+    # print(resp)
     return resp
     
 # API route for making a new NPC with a different shem
