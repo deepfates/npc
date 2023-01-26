@@ -12,14 +12,17 @@ from langchain.agents import Tool
 
 def format_scene(game_state):
     """Format the game state for display."""
-    description = "" if game_state.description == game_state.feedback else f"{game_state.description}"
+    description = "" 
+    if game_state.description is not None and game_state.description not in game_state.feedback:
+        description = game_state.description
     scene = f"""{description}{game_state.feedback}
 (Score: {game_state.score}/{game_state.max_score}, Moves: {game_state.moves}, DONE: {game_state.done})
 """
+    print(scene)
     return scene
 
 def format_intermediate_steps(steps):
-    notes =  "\n".join([f"{i+1}. {step[0][2]}" for i, step in enumerate(steps)])
+    notes =  "\n".join([f"{i+1}. {step[0].log}\nObservation: {step[1]}" for i, step in enumerate(steps)])
     # print(notes)
     return notes
 
@@ -41,20 +44,23 @@ class Game():
         self.shem = self.agent.prompt.template
         self.max_steps = max_steps
         self.notes = "No notes yet"
+    
+    def get_state(self):
+        return dict([item for item in self.world.state.items() if item[0] != 'location'])
 
     def get_available_tools(self):
         """Get the list of tools available in the game."""
         tools = [
-            # Tool(
-            #     name="Look",
-            #     description="Check the game description",
-            #     func=lambda x: format_scene(self.world.state)
-            # ),
-            # Tool(
-            #     name="Inventory",
-            #     description="Check your inventory",
-            #     func=lambda x: self.world.state.inventory
-            # ),
+            Tool(
+                name="Look",
+                description="Check the description of the current room.",
+                func=lambda x: format_scene(self.world.state)
+            ),
+            Tool(
+                name="Inventory",
+                description="Check your inventory",
+                func=lambda x: self.world.state.inventory
+            ),
             Tool(
                 name="Score",
                 description="Check your score",
@@ -65,11 +71,11 @@ class Game():
             #     description="Send a command to the game and receive feedback.",
             #     func=lambda x: format_scene(self.step_world(x))
             # ),
-            # Tool(
-            #     name="Check notes",
-            #     description="Send an empty string here to get your notes from last game.",
-            #     func=lambda x: self.notes
-            # ),
+            Tool(
+                name="Check notes",
+                description="Send an empty string here to get your notes from last round.",
+                func=lambda x: self.notes
+            ),
             Tool(
                 name="Think",
                 description="Think about your goals and the world. Use this when you can't find a valid tool",
@@ -82,10 +88,10 @@ class Game():
         """Create a new NPC agent."""
         print("Creating new NPC agent")
         self.agent = {}
-        print(self.agent)
+        # print(self.agent)
         self.agent = NPC(self.tools, self.agent_turns, shem)
         self.shem = self.agent.prompt.template
-        print(self)
+        # print(self)
         
     def step_world(self, command):
         """Send the agent's command to the game world and receive feedback."""
@@ -96,7 +102,7 @@ class Game():
         game_state = self.world.state
         """Send the game state to the agent and receive the agent's command."""
         scene = format_scene(game_state)
-        print(scene)
+        # print(scene)
         response = self.agent.act(scene)
         command = response['output']
         self.notes = format_intermediate_steps(response['intermediate_steps'])

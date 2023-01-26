@@ -17,10 +17,6 @@ def get_game():
     game = Game(game_file='./zork1.z5', max_steps=1, agent_turns=3)
     game.world.reset()
     return game
-
-def get_game_state(game):
-    return dict([item for item in game.world.state.items() if item[0] != 'location'])
-
 def get_prompt(game_state):
     # if game_state['feedback'] != '' and game_state['description'] not in game_state['feedback']:
     #     prompt = game_state['description'] + game_state['feedback']
@@ -39,7 +35,7 @@ def start():
     games[session_id] = get_game()
     shem = games[session_id].shem
     resp = {"sessionId": session_id, "shem": shem}
-    print(resp)
+    # print(resp)
     return resp
 
 @app.route("/api/stop/<session_id>")
@@ -52,9 +48,8 @@ def stop(session_id):
 @app.route("/api/step_world/<session_id>/<command>")
 async def step_world(session_id, command):
     game = games[session_id]
-    game_state = game.step_world(command)
-    game_state = get_game_state(game)
-   
+    game.step_world(command)
+    game_state = game.get_state()
     return game_state
 
 # API paths for the bot
@@ -77,13 +72,13 @@ async def get_tools(session_id):
 @app.route("/api/get_image/<session_id>")
 async def get_image(session_id):
     game = games[session_id]
-    game_state = get_game_state(game)
+    game_state = game.get_state()
     prompt = get_prompt(game_state)
-    print(prompt)
+    # print(prompt)
     # output = await diffusion.get_image(prompt)
     output = await dalle.get_image(prompt)
     resp = {'image_url': output}
-    print(resp)
+    # print(resp)
     return resp
     
 # API route for making a new NPC with a different shem
@@ -110,5 +105,18 @@ def home(path):
 
 
 if __name__ == "__main__":
+    import argparse
     from waitress import serve
-    serve(app, host="0.0.0.0", port=8080)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug", action="store_true")
+    args = parser.parse_args()
+    debug = args.debug
+    
+    if debug:
+        app.run(debug=True,
+                host="0.0.0.0",
+                port=8080)  
+
+    else:
+        serve(app, host="0.0.0.0", port=8080)
