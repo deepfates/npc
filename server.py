@@ -17,10 +17,6 @@ def get_game():
     game = Game(game_file='./zork1.z5', max_steps=1, agent_turns=3)
     game.world.reset()
     return game
-
-def get_game_state(game):
-    return dict([item for item in game.world.state.items() if item[0] != 'location'])
-
 def get_prompt(game_state):
     # if game_state['feedback'] != '' and game_state['description'] not in game_state['feedback']:
     #     prompt = game_state['description'] + game_state['feedback']
@@ -52,9 +48,8 @@ def stop(session_id):
 @app.route("/api/step_world/<session_id>/<command>")
 async def step_world(session_id, command):
     game = games[session_id]
-    game_state = game.step_world(command)
-    game_state = get_game_state(game)
-   
+    game.step_world(command)
+    game_state = game.get_state()
     return game_state
 
 # API paths for the bot
@@ -77,7 +72,7 @@ async def get_tools(session_id):
 @app.route("/api/get_image/<session_id>")
 async def get_image(session_id):
     game = games[session_id]
-    game_state = get_game_state(game)
+    game_state = game.get_state()
     prompt = get_prompt(game_state)
     # print(prompt)
     # output = await diffusion.get_image(prompt)

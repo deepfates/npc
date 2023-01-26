@@ -12,7 +12,9 @@ from langchain.agents import Tool
 
 def format_scene(game_state):
     """Format the game state for display."""
-    description = "" if game_state.description == game_state.feedback else f"{game_state.description}"
+    description = "" 
+    if game_state.description is not None and game_state.description not in game_state.feedback:
+        description = game_state.description
     scene = f"""{description}{game_state.feedback}
 (Score: {game_state.score}/{game_state.max_score}, Moves: {game_state.moves}, DONE: {game_state.done})
 """
@@ -20,7 +22,7 @@ def format_scene(game_state):
     return scene
 
 def format_intermediate_steps(steps):
-    notes =  "\n".join([f"{i+1}. {step[0][2]}" for i, step in enumerate(steps)])
+    notes =  "\n".join([f"{i+1}. {step[0].log}\nObservation: {step[1]}" for i, step in enumerate(steps)])
     # print(notes)
     return notes
 
@@ -42,6 +44,9 @@ class Game():
         self.shem = self.agent.prompt.template
         self.max_steps = max_steps
         self.notes = "No notes yet"
+    
+    def get_state(self):
+        return dict([item for item in self.world.state.items() if item[0] != 'location'])
 
     def get_available_tools(self):
         """Get the list of tools available in the game."""
