@@ -33,3 +33,6 @@ BEGIN:
 ------
 Game: {input}
 {agent_scratchpad}"""
+
+
+SHORT_PREFIX = """You are playing a text adventure game. Type a command starting with "NPC:" to play the game."""

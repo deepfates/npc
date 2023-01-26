@@ -1,8 +1,9 @@
 from langchain.prompts import PromptTemplate
+from langchain.callbacks import get_openai_callback
 from langchain.agents import ZeroShotAgent, Tool, AgentExecutor, ConversationalAgent
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain import OpenAI, LLMChain
-from npc.prompts import PREFIX, SUFFIX, FORMAT_INSTRUCTIONS
+from npc.prompts import PREFIX, SHORT_PREFIX, SUFFIX, FORMAT_INSTRUCTIONS
 from typing import List, Optional
 
 from dotenv import load_dotenv
@@ -86,7 +87,7 @@ class NPC:
         self.chain = LLMChain(
             llm=self.llm,
             prompt=self.prompt,
-            verbose=True,            
+            # verbose=True,            
         )
 
         self.agent = NPCAgent(
@@ -105,8 +106,10 @@ class NPC:
         )
 
     def act(self, input):
-        response = self.executor(input)
-        return response
+        with get_openai_callback() as cb:
+            response = self.executor(input)
+            print("TOKENS:",cb.total_tokens)
+            return response
 
 # Test
 if __name__ == "__main__":
