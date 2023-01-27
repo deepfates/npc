@@ -33,8 +33,8 @@ games: Dict[str, Game] = {}
 def start():
     session_id = str(uuid4())
     games[session_id] = get_game()
-    shem = games[session_id].shem
-    resp = {"sessionId": session_id, "shem": shem}
+    # shem = games[session_id].shem
+    resp = {"sessionId": session_id,}# "shem": shem}
     # print(resp)
     return resp
 
@@ -56,6 +56,8 @@ async def step_world(session_id, command):
 @app.route("/api/step_agent/<session_id>")
 async def step_agent(session_id):
     game = games[session_id]
+    command = game.step_agent()
+    return {"command": command}
     command, notes = game.step_agent()
     return {"command": command, "notes": notes}
 
@@ -83,14 +85,14 @@ async def get_image(session_id):
     
 # API route for making a new NPC with a different shem
 # Need to use JSON here rather than string parameters
-@app.route("/api/set_shem/<session_id>", methods=['POST'])
-async def set_shem(session_id):
-    game = games[session_id]
-    shem = request.json['shem']
-    game.new_npc(shem)
-    resp = {"sessionId": session_id, "shem": shem}
-    print(resp)
-    return resp
+# @app.route("/api/set_shem/<session_id>", methods=['POST'])
+# async def set_shem(session_id):
+#     game = games[session_id]
+#     shem = request.json['shem']
+#     game.new_npc(shem)
+#     resp = {"sessionId": session_id, "shem": shem}
+#     print(resp)
+#     return resp
 
 
 # Path for our main Svelte page

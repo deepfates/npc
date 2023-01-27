@@ -8,6 +8,7 @@
 
 import textworld 
 from npc.agent import NPC
+from npc.chain import npc_act
 from langchain.agents import Tool
 
 def format_scene(game_state):
@@ -40,8 +41,9 @@ class Game():
         self.world  = textworld.start(game_file, infos=infos)
         self.world.seed = 42
         self.tools = self.get_available_tools()
-        self.agent = NPC(self.tools, self.agent_turns, shem)
-        self.shem = self.agent.prompt.template
+        # self.agent = NPC(self.tools, self.agent_turns, shem)
+        self.agent = npc_act
+        # self.shem = self.agent.prompt.template
         self.max_steps = max_steps
         self.notes = "No notes yet"
     
@@ -87,10 +89,11 @@ class Game():
     def new_npc(self, shem=""):
         """Create a new NPC agent."""
         print("Creating new NPC agent")
-        self.agent = {}
+        self.agent = None
         # print(self.agent)
-        self.agent = NPC(self.tools, self.agent_turns, shem)
-        self.shem = self.agent.prompt.template
+        # self.agent = NPC(self.tools, self.agent_turns, shem)
+        self.agent = npc_chain()
+        # self.shem = self.agent.prompt.template
         # print(self)
         
     def step_world(self, command):
@@ -103,6 +106,8 @@ class Game():
         """Send the game state to the agent and receive the agent's command."""
         scene = format_scene(game_state)
         # print(scene)
+        response = self.agent(human_input=scene)
+        return response
         response = self.agent.act(scene)
         command = response['output']
         self.notes = format_intermediate_steps(response['intermediate_steps'])
