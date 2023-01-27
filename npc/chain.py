@@ -39,7 +39,7 @@ class NPC:
         self.chains = [self.__build_chain__(p) for p in prompts]
         # Build the memory
         mem = ConversationBufferWindowMemory(
-            k=4,
+            k=10,
             memory_key="chat_history",  
             human_prefix="Game", 
             ai_prefix="NPC",

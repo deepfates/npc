@@ -93,8 +93,8 @@ COT_PREFIX = """
 I will receive the game history and the current scene.
 I must suggest a useful command to the player using the following format:
 ```
-Observation: What is the game trying to say to me? What can i infer about the game world?
-Goals: Consider what I want to achieve and how I can achieve it.
+Observation: What if I extrapolate what the text implies about the world?
+Plan: Consider my overall goals and plan how to achieve them.
 Command: Write the next command that will help achieve my goals.
 ```
 """
@@ -118,7 +118,7 @@ plan_cot = ChainSignature(
 {human_input}
 ```
 Observation:{observation}
-Goals:""",
+Plan:""",
         takes=["chat_history", "human_input", "observation"],
         returns="plan",
     )
@@ -130,7 +130,7 @@ cmd_cot = ChainSignature(
 {human_input}
 ```
 Observation:{observation}
-Goals:{plan}
+Plan:{plan}
 Command:""",
         takes=["chat_history", "human_input", "observation", "plan"],
         returns="command",

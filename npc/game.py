@@ -54,7 +54,8 @@ class Game():
         response = self.agent.act(human_input=scene)
         self.notes = [response[x] for x in ['observation', 'plan']]
         command = format_command(response)
-        return command
+        response = {'command': command, 'notes': self.notes}
+        return response
 
     def run(self):
         """Step through the game loop, sending the agent's intentions to the game world and receiving feedback."""

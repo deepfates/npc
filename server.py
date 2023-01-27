@@ -34,7 +34,7 @@ def start():
     session_id = str(uuid4())
     games[session_id] = get_game()
     shem = games[session_id].agent.shem
-    resp = {"sessionId": session_id,}# "shem": shem}
+    resp = {"sessionId": session_id, "shem": shem}
     # print(resp)
     return resp
 
