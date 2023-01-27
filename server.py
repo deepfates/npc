@@ -1,11 +1,11 @@
 # This is a flask server to play the game.
 # It serves the static files for the Svelte frontend and the API for the game.
-# It can be used to interactively play the game, or to 
 from typing import Dict
 from flask import Flask, send_from_directory, request
+from waitress import serve # type: ignore
 from uuid import uuid4
-from game import Game
-from apps import DiffusionApp, Summarizer, DalleApp
+from npc.game import Game
+from npc.apps import DiffusionApp, Summarizer, DalleApp
 
 app = Flask(__name__)
 diffusion = DiffusionApp('sd2')
@@ -14,7 +14,7 @@ summarizer = Summarizer()
 
 # Utilities for operating the game
 def get_game():
-    game = Game(game_file='./zork1.z5', max_steps=1, agent_turns=3)
+    game = Game(game_file='./zork1.z5', max_steps=1)#, agent_turns=3)
     game.world.reset()
     return game
 def get_prompt(game_state):
@@ -33,7 +33,7 @@ games: Dict[str, Game] = {}
 def start():
     session_id = str(uuid4())
     games[session_id] = get_game()
-    # shem = games[session_id].shem
+    shem = games[session_id].agent.shem
     resp = {"sessionId": session_id,}# "shem": shem}
     # print(resp)
     return resp
@@ -85,14 +85,14 @@ async def get_image(session_id):
     
 # API route for making a new NPC with a different shem
 # Need to use JSON here rather than string parameters
-# @app.route("/api/set_shem/<session_id>", methods=['POST'])
-# async def set_shem(session_id):
-#     game = games[session_id]
-#     shem = request.json['shem']
-#     game.new_npc(shem)
-#     resp = {"sessionId": session_id, "shem": shem}
-#     print(resp)
-#     return resp
+@app.route("/api/set_shem/<session_id>", methods=['POST'])
+async def set_shem(session_id):
+    game = games[session_id]
+    shem = request.json['shem']
+    game.new_npc(shem)
+    resp = {"sessionId": session_id, "shem": shem}
+    print(resp)
+    return resp
 
 
 # Path for our main Svelte page
@@ -108,7 +108,6 @@ def home(path):
 
 if __name__ == "__main__":
     import argparse
-    from waitress import serve
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", action="store_true")

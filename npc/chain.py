@@ -17,117 +17,71 @@
 # - Plan
 # - Next command
 
-from dataclasses import dataclass
-from typing import List
 from langchain.callbacks import get_openai_callback
 from langchain.chains import LLMChain, SequentialChain
-from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
+from npc.prompts import sim_cot, plan_cot, cmd_cot
+from npc.memory import ConversationBufferWindowMemory
 
 from dotenv import load_dotenv
 
 load_dotenv()
-llm = OpenAI(model_name="text-davinci-003", temperature=0.0, max_tokens=40, stop=["\n",">","Game:"])
 
-@dataclass
-class ChainSignature:
-    template : str
-    takes : List[str]
-    returns : str
+class NPC:
+    """NPC agent using just a hand-coded sequence of chains.
+    Still accepts a shem for motivation."""
+    def __init__(self, shem=""):
+        self.shem = shem
+        self.llm = OpenAI(model_name="text-davinci-003", temperature=0.1, max_tokens=53, stop=["\n",">","Game:", "```"])
+        # Build the chains
+        prompts = [sim_cot, plan_cot, cmd_cot]
+        self.chains = [self.__build_chain__(p) for p in prompts]
+        # Build the memory
+        mem = ConversationBufferWindowMemory(
+            k=4,
+            memory_key="chat_history",  
+            human_prefix="Game", 
+            ai_prefix="NPC",
+            output_key="all"
+        )
+        # Build the sequential chain
+        self.s_chain = SequentialChain(
+            chains=self.chains,
+            memory=mem,
+            input_variables=["chat_history","human_input"],
+            output_variables=["observation","plan","command"],
+            # verbose=True,
+        )
 
-sim = ChainSignature(
-        template="""You are a natural language world simulator. Extrapolate what the text implies about the world.
-PROBLEM:
-```
-{chat_history}
-{human_input}
-```
-SIMULATOR:
-```
-""",
-        takes=["chat_history", "human_input"],
-        returns="worldview",
-    )
-    
-plan = ChainSignature(
-        template="""You are a player in a game world. Consider your current goals and plan how to achieve them.
-SITUATION:
-```
-{worldview}
-```
-GOALS:
-```
-""",
-        takes=["worldview"],
-        returns="plan",
-    )
+    def __build_prompt__(self, chain_signature):
+        return PromptTemplate(
+            template=self.shem + chain_signature.template,
+            input_variables=chain_signature.takes,
+        )
 
-cmd = ChainSignature(
-        template="""You are playing a text adventure game. Given your notes, write a command to achieve your goal.
-PLAN:
-```
-{plan}
-```
-SITUATION:
-```
-{human_input}
-```
-COMMAND:
-```
-""",
-        takes=["plan", "human_input"],
-        returns="command",
-    )
+    def __build_chain__(self, chain_signature):
+        return LLMChain(
+            llm=self.llm,
+            prompt=self.__build_prompt__(chain_signature),
+            output_key=chain_signature.returns,
+            # verbose=True,
+        )
 
-prompts = [sim, plan, cmd]
+    def act(self, human_input):
+        # Call the chain with the human input   
+        with get_openai_callback() as cb:
+            resp = self.s_chain(human_input)
+            print("TOKENS:",cb.total_tokens)
+            return resp
 
-def build_prompt(chain_signature):
-    return PromptTemplate(
-        template=chain_signature.template,
-        input_variables=chain_signature.takes,
-    )
-
-def build_chain(chain_signature):
-    return LLMChain(
-        llm=llm,
-        prompt=build_prompt(chain_signature),
-        output_key=chain_signature.returns,
-        verbose=True,
-    )
-
-sim_chain = build_chain(sim)
-plan_chain = build_chain(plan)
-cmd_chain = build_chain(cmd)
-
-chains = [sim_chain, plan_chain, cmd_chain]
-mem = ConversationBufferWindowMemory(
-    k=2,
-    memory_key="chat_history",  
-    human_prefix="Game", 
-    ai_prefix="Player",
-)
-
-npc_chain = SequentialChain(
-    chains=chains,
-    memory=mem,
-    input_variables=["chat_history","human_input"],
-    output_variables=["command"],
-    verbose=True,
-)
-
-def npc_act(human_input):
-    with get_openai_callback() as cb:
-        resp = npc_chain.run(human_input=human_input)
-        print("TOKENS:",cb.total_tokens)
-        return resp
 
 if __name__ == "__main__":
+    npc = NPC()
     with get_openai_callback() as cb:
-        print(npc_chain.run(human_input="""Game: West of House
+        print(npc.act(human_input="""Game: West of House
 You are standing in an open field west of a white house, with a boarded front door.
 There is a small mailbox here.
 The small mailbox contains
 a leaflet.
 """))
-        print("TOKENS:",cb.total_tokens)

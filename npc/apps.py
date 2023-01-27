@@ -1,4 +1,4 @@
-import replicate
+import replicate # type: ignore
 from openai import Image
 
 import os
@@ -118,7 +118,7 @@ class Summarizer():
     def __init__(self) -> None:
         self.llm = OpenAI(temperature=0.0, max_tokens=60)
         self.chain = load_summarize_chain(self.llm, chain_type="map_reduce")
-        self.cache = {}
+        self.cache: dict[str, str] = {}
 
     def run(self, text):
         if text in self.cache:
