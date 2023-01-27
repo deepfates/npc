@@ -9,8 +9,8 @@ import { fade, slide } from 'svelte/transition';
 let sessionId = "";
 let output = "";
 let background = "";
-let command = "Look around";
-let suggestion = "";
+let suggestion = "Look around";
+let command = "";
 let notes = "";
 let shem = "";
 let showShem = false;
@@ -85,11 +85,11 @@ function stepAgent() {
 		.then((response) => response.json()) // parse the JSON from the server
 		.then((data) => {
 			console.log(data)
-			notes = data.notes
+			notes = data.command.notes
 			console.log(notes)
 			return data
 		}).then((data) => {
-				suggestion = data.command			
+				suggestion = data.command.command			
 		}
 	);
 }
@@ -111,7 +111,7 @@ function setNewShem() {
 // start a game when the page loads
 startGame();
 //wait a second and then send the command
-setTimeout(sendCommand, 1500);
+// setTimeout(sendCommand, 1500);
 </script>
 
 <!-- Simple text adventure UI with a textinput, send button, and output window -->
@@ -120,7 +120,7 @@ setTimeout(sendCommand, 1500);
           href="https://fonts.googleapis.com/css?family=VT323">
 </svelte:head>
 
-<main>
+<main class="gradient-background">
 	{#if background}
 	<Background background={background}/>
 	{/if}
@@ -159,13 +159,31 @@ setTimeout(sendCommand, 1500);
 		/* reset to nothing */
 		margin: 0;
 		padding: 0;
-		background: #181300;
 		color: #ffe466;
 		font-family: 'VT323', monospace;
         font-size: 2rem;
         text-shadow: 1px 1px 1px #181300;
+		background: #181300;
 
-	}
+		}
+	
+	.gradient-background {
+		background: linear-gradient(180deg, hsla(49, 100%, 70%, 10%) 0%, hsla(48, 73%, 32%, 20%) 50%, hsla(48, 100%, 5%, 80%) 100%);
+		background-size: 360% 180%;
+		animation: gradient-animation 8s ease infinite;
+		}
+	@keyframes gradient-animation {
+		0% {
+			background-position: 50% 0%;
+		}
+		50% {
+			background-position: 50% 100%;
+		}
+		100% {
+			background-position: 50% 0%;
+		}
+		}
+
 	main {
 		text-align: center;
 		height: 100%;
@@ -199,8 +217,14 @@ setTimeout(sendCommand, 1500);
 		margin: 0;
 		padding: 0;
 		width: 4rem;
-		height: 3rem;
-		
+		height: 3rem;		
+	}
+	/* on hover, the button background lights up. on click it darkens a little */
+	.input-button:hover {
+		background-color: rgba(255, 228, 102, 0.2);
+	}
+	.input-button:active {
+		background-color: rgba(255, 228, 102, 0.1);
 	}
 	.commandline {
         background-color: transparent;
