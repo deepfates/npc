@@ -1,6 +1,5 @@
 <!-- We're on the same Flask server as the game so can easily spin up  -->
 <script>
-import "the-new-css-reset/css/reset.css;"
 import History from './components/History.svelte';
 import Overlay from './components/Overlay.svelte';
 import Background from './components/Background.svelte';
@@ -118,6 +117,7 @@ startGame();
 <svelte:head>
 	<link rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=VT323">
+	<title>NPC</title>
 </svelte:head>
 
 <main class="gradient-background">
@@ -136,9 +136,9 @@ startGame();
 				<span>>&nbsp;</span>
 				<!-- svelte-ignore a11y-autofocus -->
 				<input autofocus placeholder={suggestion} bind:value={command} on:keydown={handleKeyDown} class="commandline"/>
-				<button on:click={sendCommand} class="input-button">↵</button>
-				<button on:click={toggleShem} class="input-button">📜</button>
-				<button on:click={stepAgent} class="input-button">⇥</button>
+				<button on:click={sendCommand} class="input-button" title="Send command">↵</button>
+				<button on:click={toggleShem} class="input-button" title="Edit bot">📜</button>
+				<button on:click={stepAgent} class="input-button" title="Run bot">⇥</button>
 			</div>
 		</div>
 		{#if showShem}
