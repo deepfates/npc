@@ -48,8 +48,7 @@ class Game():
         """Send the game state to the agent and receive the agent's command."""
         scene = format_scene(game_state)
         response = self.agent.act(human_input=scene)
-        self.notes = [response[x] for x in ['simulation', 'plan']]
-        self.notes = format_notes(self.notes)
+        self.notes = format_notes(response)
         command = format_command(response)
         response = {'command': command, 'notes': self.notes}
         return response
@@ -60,12 +59,33 @@ class Game():
         # try:
         done = False
         i = 0
+        stuck = 0
+        stuck_buffer = 2
+
         while not done:
             i += 1
             print("#"*50, i)
             # This is where the action happens
             resp = self.step_agent()
             command = resp['command']
+
+            # If it's trying the same command over and over, rebuild the NPC
+            if game_state.last_command == command:
+                stuck += 1
+
+            if i > game_state.moves + stuck_buffer:
+                stuck += 1
+
+            if stuck > 2:
+                print("Rebuilding NPC")
+                self.new_npc()
+                # response = self.agent.act(human_input=game_state.description)
+                # command = response['command']
+                command = "Look"
+                stuck_buffer += 2
+                stuck = 0
+
+            # Step the game world
             game_state = self.step_world(command)
             if i >= self.max_steps:
                 break
