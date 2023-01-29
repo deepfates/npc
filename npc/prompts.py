@@ -47,55 +47,24 @@ class ChainSignature:
     takes : List[str]
     returns : str
 
-sim = ChainSignature(
-        template="""You are a natural language world simulator. 
-Extrapolate what the text implies about the world.
-PROBLEM:
-```
-{chat_history}
-{human_input}
-```
-SIMULATOR:
-```
-""",
-        takes=["chat_history", "human_input"],
-        returns="observation",
-    )
-    
-plan = ChainSignature(
-        template="""You are a player in a game world. 
-Consider your overall goals and plan how to achieve them.
-SITUATION:
-```
-{observation}
-```
-GOALS:
-```
-""",
-        takes=["observation"],
-        returns="plan",
-    )
 
-cmd = ChainSignature(
-        template="""You are playing a text adventure game. 
-Given your notes, write a command to achieve your goal.
-SITUATION:
-```
-{human_input}
-```
-Goals: {plan}
-Player:""",
-        takes=["plan","human_input"],
-        returns="command",
-    )
+SHEM = """I am NPC, an advanced game-playing language model.
+My task is to generate a command for a text-based adventure game.
+The game understands the following commands:
+Movement: north, south, east, west, northeast, northwest, southeast, southwest, up, down, look, save, restore, restart, verbose, score, diagnostic, brief, superbrief, quit (q), climb, g, go (direction), enter, in, out, hi/hello
+Item: get/take/grab (item), get/take/grab all, throw (item) at (location), open (container), open (exit), read (item), drop (item), put (item) in (container), turn (control) with (item), turn on (item), turn off (item), move (object), attack (creature) with (item), examine (object), inventory, eat, shout, close [Door], tie (item) to (object), pick (item), kill self with (weapon), break (item) with (item), kill (creature) with (item), pray, drink, smell, cut (object/item) with (weapon)
+Other: (none), Zork, f%&$/s@^#/damn, jump
+Wand (only if you have the wand): fall, fantasize, fear, feeble, fence, ferment, fierce, filch, fireproof, float, fluoresce, free, freeze, frobizz, frobnoid, frobozzle, fry, fudge, fumble
+"""
+
 
 COT_PREFIX = """
 I will receive the game history and the current scene.
-I must suggest a useful command to the player using the following format:
+I must decide the next command using the following format:
 ```
-Observation: What if I extrapolate what the text implies about the world?
-Plan: Consider my overall goals and plan how to achieve them.
-Command: Write the next command that will help achieve my goals.
+Simulation: What can I imagine about this scene?
+Plan: Consider my overall goals and plan the next step
+Command: Generate a command to send to the game
 ```
 """
 
@@ -106,9 +75,9 @@ sim_cot = ChainSignature(
 {chat_history}
 {human_input}
 ```
-Observation:""",
+Simulation:""",
         takes=["chat_history", "human_input"],
-        returns="observation",
+        returns="simulation",
     )
     
 plan_cot = ChainSignature(
@@ -117,9 +86,9 @@ plan_cot = ChainSignature(
 {chat_history}
 {human_input}
 ```
-Observation:{observation}
+Simulation:{simulation}
 Plan:""",
-        takes=["chat_history", "human_input", "observation"],
+        takes=["chat_history", "human_input", "simulation"],
         returns="plan",
     )
 
@@ -129,10 +98,10 @@ cmd_cot = ChainSignature(
 {chat_history}
 {human_input}
 ```
-Observation:{observation}
+Simulation:{simulation}
 Plan:{plan}
 Command:""",
-        takes=["chat_history", "human_input", "observation", "plan"],
+        takes=["chat_history", "human_input", "simulation", "plan"],
         returns="command",
     )
 

@@ -26,3 +26,12 @@ def format_command(response):
         print("ERROR - no command")
     print(f"    > {command}")
     return command
+
+cents_per_token = 2/1000
+def format_toks(toks):
+    cost = toks * cents_per_token /100
+    print(f"Tokens: {toks} ${cost:.2f}")
+
+def format_notes(notes):
+    print(notes)
+    

@@ -129,5 +129,5 @@ dmypy.json
 .pyre/
 
 # NPC specific
-zork1.z5
+*.z5
 log.md

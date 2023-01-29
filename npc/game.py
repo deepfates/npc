@@ -1,12 +1,8 @@
 import textworld # type: ignore
 from npc.chain import NPC
-from npc.utils import format_scene, format_command, format_intermediate_steps
+from npc.prompts import SHEM
+from npc.utils import format_scene, format_command, format_notes
 from langchain.agents import Tool
-
-SHEM = """I am NPC, an advanced game-playing language model.
-My task is to generate a command for a text-based adventure game.
-The game only understands short simple commands like "go direction" and "take item".
-"""
 
 class Game():
     """High-level game class that handles the game loop and agent interaction.
@@ -52,7 +48,8 @@ class Game():
         """Send the game state to the agent and receive the agent's command."""
         scene = format_scene(game_state)
         response = self.agent.act(human_input=scene)
-        self.notes = [response[x] for x in ['observation', 'plan']]
+        self.notes = [response[x] for x in ['simulation', 'plan']]
+        self.notes = format_notes(self.notes)
         command = format_command(response)
         response = {'command': command, 'notes': self.notes}
         return response
@@ -67,7 +64,8 @@ class Game():
             i += 1
             print("#"*50, i)
             # This is where the action happens
-            command = self.step_agent()
+            resp = self.step_agent()
+            command = resp['command']
             game_state = self.step_world(command)
             if i >= self.max_steps:
                 break
@@ -80,15 +78,3 @@ class Game():
             
         print("Played {} steps, scoring {} points.".format(game_state.moves, game_state.score))
 
-# Now let's run the game
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--game_file', type=str, default='./zork1.z5')
-    parser.add_argument('--max_steps', type=int, default=10)
-    args = parser.parse_args()
-    game_file = args.game_file
-    max_steps = args.max_steps
-    
-    game = Game(game_file=game_file, max_steps=max_steps)#, agent_turns=5)
-    game.run()

@@ -23,10 +23,13 @@ from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
 from npc.prompts import sim_cot, plan_cot, cmd_cot
 from npc.memory import ConversationBufferWindowMemory
+from npc.utils import format_toks
 
 from dotenv import load_dotenv
 
+
 load_dotenv()
+
 
 class NPC:
     """NPC agent using just a hand-coded sequence of chains.
@@ -50,7 +53,7 @@ class NPC:
             chains=self.chains,
             memory=mem,
             input_variables=["chat_history","human_input"],
-            output_variables=["observation","plan","command"],
+            output_variables=["simulation","plan","command"],
             # verbose=True,
         )
 
@@ -72,7 +75,7 @@ class NPC:
         # Call the chain with the human input   
         with get_openai_callback() as cb:
             resp = self.s_chain(human_input)
-            print("TOKENS:",cb.total_tokens)
+            format_toks(cb.total_tokens)
             return resp
 
 
