@@ -32,6 +32,6 @@ def format_toks(toks):
     cost = toks * cents_per_token /100
     print(f"Tokens: {toks} ${cost:.2f}")
 
-def format_notes(notes):
+def format_notes(response):
+    notes = [response[x] for x in ['simulation', 'plan']]
     print(notes)
-    

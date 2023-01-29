@@ -75,7 +75,7 @@ class NPC:
         # Call the chain with the human input   
         with get_openai_callback() as cb:
             resp = self.s_chain(human_input)
-            format_toks(cb.total_tokens)
+            # format_toks(cb.total_tokens)
             return resp
 
 
