@@ -36,7 +36,7 @@ class NPC:
     Still accepts a shem for motivation."""
     def __init__(self, shem=""):
         self.shem = shem
-        self.llm = OpenAI(model_name="text-davinci-003", temperature=0.1, max_tokens=53, stop=["\n",">","Game:", "```"])
+        self.llm = OpenAI(model_name="text-davinci-003", temperature=0.0, max_tokens=53, stop=["\n",">","Game:", "```"])
         # Build the chains
         prompts = [sim_cot, plan_cot, cmd_cot]
         self.chains = [self.__build_chain__(p) for p in prompts]
