@@ -17,18 +17,26 @@
 # - Plan
 # - Next command
 
+from langchain.llms import OpenAI
 from langchain.callbacks import get_openai_callback
 from langchain.chains import LLMChain, SequentialChain
-from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
+# from langchain.chains.conversation.memory import ConversationSummaryBufferMemory 
+from npc.memory import NPCMemory
 from npc.prompts import sim_cot, plan_cot, cmd_cot
-from npc.memory import ConversationBufferWindowMemory
 from npc.utils import format_toks
 
 from dotenv import load_dotenv
-
-
 load_dotenv()
+
+davinci_max = 4097
+sum_length = 308
+mem_length = 1000
+mtok = davinci_max - sum_length - mem_length
+
+model = "text-davinci-003"
+llm = OpenAI(model_name=model, temperature=0.0, max_tokens=53, stop=["\n",">","Game:", "```"])
+long_llm = OpenAI(model_name=model, temperature=0.0, max_tokens=mtok, stop=["\n",">","Game:", "```"])
 
 
 class NPC:
@@ -36,13 +44,15 @@ class NPC:
     Still accepts a shem for motivation."""
     def __init__(self, shem=""):
         self.shem = shem
-        self.llm = OpenAI(model_name="text-davinci-003", temperature=0.0, max_tokens=53, stop=["\n",">","Game:", "```"])
         # Build the chains
         prompts = [sim_cot, plan_cot, cmd_cot]
         self.chains = [self.__build_chain__(p) for p in prompts]
+        # Uncomment to see the prompt at the end of all the chains
+        self.chains[-1].verbose = True
         # Build the memory
-        mem = ConversationBufferWindowMemory(
-            k=10,
+        mem = NPCMemory(
+            llm=long_llm,
+            max_token_limit=mem_length,
             memory_key="chat_history",  
             human_prefix="Game", 
             ai_prefix="NPC",
@@ -54,7 +64,6 @@ class NPC:
             memory=mem,
             input_variables=["chat_history","human_input"],
             output_variables=["simulation","plan","command"],
-            # verbose=True,
         )
 
     def __build_prompt__(self, chain_signature):
@@ -65,7 +74,7 @@ class NPC:
 
     def __build_chain__(self, chain_signature):
         return LLMChain(
-            llm=self.llm,
+            llm=llm,
             prompt=self.__build_prompt__(chain_signature),
             output_key=chain_signature.returns,
             # verbose=True,
@@ -75,7 +84,7 @@ class NPC:
         # Call the chain with the human input   
         with get_openai_callback() as cb:
             resp = self.s_chain(human_input)
-            # format_toks(cb.total_tokens)
+            format_toks(cb.total_tokens)
             return resp
 
 
