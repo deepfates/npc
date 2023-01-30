@@ -14,6 +14,7 @@ tiktoken = "^0.1.2"
 Flask = {extras = ["async"], version = "^2.2.2"}
 replicate = "^0.4.0"
 waitress = "^2.1.2"
+gpt-index = "^0.3.0"
 
 [tool.poetry.dev-dependencies]
 ipykernel = "^6.20.1"

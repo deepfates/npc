@@ -21,8 +21,10 @@ from langchain.callbacks import get_openai_callback
 from langchain.chains import LLMChain, SequentialChain
 from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
+
+from gpt_index import GPTListIndex
 from npc.prompts import sim_cot, plan_cot, cmd_cot
-from npc.memory import ConversationBufferWindowMemory
+from npc.memory import ConversationBufferWindowMemory, GPTIndexMemory
 from npc.utils import format_toks
 
 from dotenv import load_dotenv
@@ -40,13 +42,18 @@ class NPC:
         # Build the chains
         prompts = [sim_cot, plan_cot, cmd_cot]
         self.chains = [self.__build_chain__(p) for p in prompts]
+        # Uncomment this to see the last prompt in terminal
+        # self.chains[-1].verbose = True
+
         # Build the memory
-        mem = ConversationBufferWindowMemory(
-            k=10,
-            memory_key="chat_history",  
+        index = GPTListIndex([])
+        mem = GPTIndexMemory(
+            index=index,
             human_prefix="Game", 
             ai_prefix="NPC",
-            output_key="all"
+            memory_key="chat_history",
+            query_kwargs={"response_mode": "compact"},
+            output_key="all",
         )
         # Build the sequential chain
         self.s_chain = SequentialChain(
@@ -54,7 +61,6 @@ class NPC:
             memory=mem,
             input_variables=["chat_history","human_input"],
             output_variables=["simulation","plan","command"],
-            # verbose=True,
         )
 
     def __build_prompt__(self, chain_signature):
@@ -63,19 +69,19 @@ class NPC:
             input_variables=chain_signature.takes,
         )
 
-    def __build_chain__(self, chain_signature):
+    def __build_chain__(self, chain_signature, verbose=False):
         return LLMChain(
             llm=self.llm,
             prompt=self.__build_prompt__(chain_signature),
             output_key=chain_signature.returns,
-            # verbose=True,
+            verbose=verbose,
         )
 
     def act(self, human_input):
         # Call the chain with the human input   
         with get_openai_callback() as cb:
             resp = self.s_chain(human_input)
-            # format_toks(cb.total_tokens)
+            format_toks(cb.total_tokens)
             return resp
 
 
