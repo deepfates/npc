@@ -65,7 +65,7 @@ class Game():
         done = False
         i = 0
         stuck_buffer = 2
-
+        stuck_inc = 2
         stuck = 0
         while not done:
             i += 1
@@ -86,7 +86,7 @@ class Game():
                 # response = self.agent.act(human_input=game_state.description)
                 # command = response['command']
                 command = "Look"
-                stuck_buffer += 2
+                stuck_buffer += stuck_inc
                 stuck = 0
 
             # Step the game world
