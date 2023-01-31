@@ -71,6 +71,7 @@ class NPC:
             memory=mem,
             input_variables=["chat_history","entities","human_input"],
             output_variables=["simulation","plan","command"],
+            # verbose=True,
         )
 
     def __build_prompt__(self, chain_signature):

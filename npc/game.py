@@ -26,6 +26,7 @@ class Game():
         self.shem = shem
         self.max_steps = max_steps
         self.notes = "No notes yet"
+        self.npcs_used = 0
         # self.shem = self.agent.prompt.template
     
     def get_state(self):
@@ -38,7 +39,8 @@ class Game():
         self.agent = None
         self.agent = NPC(shem=shem, memories=memories)
         # print("Memories:", self.agent.s_chain.memory.dict()['memories'][0]['store'])
-        print("New NPC agent created")
+        self.npcs_used += 1
+        print("New NPC agent created, #" + str(self.npcs_used))
         self.shem = shem
         
     def step_world(self, command):
@@ -99,5 +101,4 @@ class Game():
         # except Exception as e:
         #     print(e)
             
-        print("Played {} steps, scoring {} points.".format(game_state.moves, game_state.score))
-
+        print(f"Played {game_state.moves} steps with {self.npcs_used} NPCs, scoring {game_state.score} points.")
