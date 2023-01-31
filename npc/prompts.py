@@ -27,9 +27,9 @@ COT_PREFIX = """
 I will receive the game history and the current scene.
 I must decide the next command using the following format:
 ```
-Simulation: What can I imagine about this scene? Am I stuck? What can I do?
-Plan: Consider my overall goals and plan the next step
-Command: Generate command text
+Simulation: Consider the environment, characters, and objects in the scene.
+Plan: Consider the overall goals of the game, the current state of the game, and the available options.
+Command: Generate command text based on the available commands and the context of the scene.
 ```
 Begin!
 ---
