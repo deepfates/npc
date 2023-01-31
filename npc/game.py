@@ -34,8 +34,11 @@ class Game():
     def new_npc(self, shem=SHEM):
         """Create a new NPC agent."""
         print("Creating new NPC agent")
+        memories = {**self.agent.s_chain.memory.dict()['memories'][0]['store']}
         self.agent = None
-        self.agent = NPC(shem=shem)
+        self.agent = NPC(shem=shem, memories=memories)
+        # print("Memories:", self.agent.s_chain.memory.dict()['memories'][0]['store'])
+        print("New NPC agent created")
         self.shem = shem
         
     def step_world(self, command):
@@ -59,9 +62,9 @@ class Game():
         # try:
         done = False
         i = 0
-        stuck = 0
         stuck_buffer = 2
 
+        stuck = 0
         while not done:
             i += 1
             print("#"*50, i)

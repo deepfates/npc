@@ -21,48 +21,55 @@ from langchain.llms import OpenAI
 from langchain.callbacks import get_openai_callback
 from langchain.chains import LLMChain, SequentialChain
 from langchain.prompts import PromptTemplate
-# from langchain.chains.conversation.memory import ConversationSummaryBufferMemory 
-from npc.memory import NPCMemory
+from langchain.chains.conversation.memory import CombinedMemory
+from npc.memory import CBWMMemory, CEMMemory
 from npc.prompts import sim_cot, plan_cot, cmd_cot
 from npc.utils import format_toks
 
 from dotenv import load_dotenv
 load_dotenv()
 
-davinci_max = 4097
-sum_length = 308
-mem_length = 1000
-mtok = davinci_max - sum_length - mem_length
-
 model = "text-davinci-003"
 llm = OpenAI(model_name=model, temperature=0.0, max_tokens=53, stop=["\n",">","Game:", "```"])
-long_llm = OpenAI(model_name=model, temperature=0.0, max_tokens=mtok, stop=["\n",">","Game:", "```"])
 
 
 class NPC:
     """NPC agent using just a hand-coded sequence of chains.
     Still accepts a shem for motivation."""
-    def __init__(self, shem=""):
+    def __init__(self, shem="", memories = {}):
         self.shem = shem
         # Build the chains
         prompts = [sim_cot, plan_cot, cmd_cot]
         self.chains = [self.__build_chain__(p) for p in prompts]
         # Uncomment to see the prompt at the end of all the chains
-        self.chains[-1].verbose = True
+        # self.chains[-1].verbose = True
         # Build the memory
-        mem = NPCMemory(
-            llm=long_llm,
-            max_token_limit=mem_length,
+        chat_history = CBWMMemory(
+            k=10,
             memory_key="chat_history",  
             human_prefix="Game", 
             ai_prefix="NPC",
-            output_key="all"
+            input_key="human_input",
+            output_key="all",
+        )
+        entities = CEMMemory(
+            k=10,
+            llm=llm,
+            memory_keys=["entities", "chat_history"],
+            human_prefix="Game", 
+            ai_prefix="NPC",
+            input_key="human_input",
+            output_key="command",
+            store=memories,
+        ) 
+        mem = CombinedMemory(
+            memories=[entities, chat_history],
         )
         # Build the sequential chain
         self.s_chain = SequentialChain(
             chains=self.chains,
             memory=mem,
-            input_variables=["chat_history","human_input"],
+            input_variables=["chat_history","entities","human_input"],
             output_variables=["simulation","plan","command"],
         )
 
