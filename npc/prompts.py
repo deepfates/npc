@@ -7,6 +7,7 @@ class ChainSignature:
     takes : List[str]
     returns : str
 
+### Identity prompts
 
 NAME = """I am NPC, an advanced game-playing language model.
 My task is to win a text-based adventure game.
@@ -20,7 +21,7 @@ Wand (only if I have the wand): fall, fantasize, fear, feeble, fence, ferment, f
 
 SHEM = NAME + COMMANDS
 
-###
+### Chain of Thought prompts
 
 COT_PREFIX = """
 I will receive the game history and the current scene.

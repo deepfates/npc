@@ -82,7 +82,6 @@ class Game():
                 stuck += 1
 
             if stuck > 2:
-                print("Rebuilding NPC")
                 self.new_npc()
                 # response = self.agent.act(human_input=game_state.description)
                 # command = response['command']
