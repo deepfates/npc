@@ -131,3 +131,4 @@ dmypy.json
 # NPC specific
 *.z5
 log.md
+npc/run@t001.md

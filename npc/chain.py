@@ -18,13 +18,11 @@
 # - Next command
 
 from langchain.llms import OpenAI
-from langchain.callbacks import get_openai_callback
 from langchain.chains import LLMChain, SequentialChain
 from langchain.prompts import PromptTemplate
 from langchain.chains.conversation.memory import CombinedMemory
 from npc.memory import CBWMMemory, CEMMemory
 from npc.prompts import sim_cot, plan_cot, cmd_cot
-from npc.utils import format_toks
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -90,16 +88,13 @@ class NPC:
 
     def act(self, human_input):
         # Call the chain with the human input   
-        with get_openai_callback() as cb:
-            resp = self.s_chain(human_input)
-            format_toks(cb.total_tokens)
-            return resp
+        resp = self.s_chain(human_input)
+        return resp
 
 
 if __name__ == "__main__":
     npc = NPC()
-    with get_openai_callback() as cb:
-        print(npc.act(human_input="""Game: West of House
+    print(npc.act(human_input="""Game: West of House
 You are standing in an open field west of a white house, with a boarded front door.
 There is a small mailbox here.
 The small mailbox contains

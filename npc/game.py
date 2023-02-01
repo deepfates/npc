@@ -1,8 +1,10 @@
 import textworld # type: ignore
 from npc.chain import NPC
 from npc.prompts import SHEM
-from npc.utils import format_scene, format_command, format_notes
+from npc.utils import format_scene, format_command, format_notes, format_toks
 from langchain.agents import Tool
+from langchain.callbacks import get_openai_callback
+import time
 
 class Game():
     """High-level game class that handles the game loop and agent interaction.
@@ -26,7 +28,7 @@ class Game():
         self.shem = shem
         self.max_steps = max_steps
         self.notes = "No notes yet"
-        self.npcs_used = 0
+        self.npcs_used = 1
         # self.shem = self.agent.prompt.template
     
     def get_state(self):
@@ -59,6 +61,7 @@ class Game():
         return response
 
     def run(self):
+        start = time.time()
         """Step through the game loop, sending the agent's intentions to the game world and receiving feedback."""
         game_state = self.world.reset()
         # try:
@@ -67,37 +70,44 @@ class Game():
         stuck_buffer = 2
         stuck_inc = 2
         stuck = 0
-        while not done:
-            i += 1
-            print("#"*50, i)
-            # This is where the action happens
-            resp = self.step_agent()
-            command = resp['command']
+        with get_openai_callback() as cb:
 
-            # If it's trying the same command over and over, rebuild the NPC
-            if game_state.last_command == command:
-                stuck += 1
 
-            if i > game_state.moves + stuck_buffer:
-                stuck += 1
+            while not done:
+                i += 1
+                print("#"*50, i)
+                # This is where the action happens
+                resp = self.step_agent()
+                command = resp['command']
 
-            if stuck > 2:
-                self.new_npc()
-                # response = self.agent.act(human_input=game_state.description)
-                # command = response['command']
-                command = "Look"
-                stuck_buffer += stuck_inc
-                stuck = 0
+                # If it's trying the same command over and over, rebuild the NPC
+                if game_state.last_command == command:
+                    stuck += 1
 
-            # Step the game world
-            game_state = self.step_world(command)
-            if i >= self.max_steps:
-                break
+                if i > game_state.moves + stuck_buffer:
+                    stuck += 1
 
-        self.world.render()  # Final message.
-        # except KeyboardInterrupt:
-        #     pass
-        # except Exception as e:
-        #     print(e)
-            
-        print(f"Played {game_state.moves} steps with {self.npcs_used} NPCs, scoring {game_state.score} points.")
+                if stuck > 2:
+                    self.new_npc()
+                    # response = self.agent.act(human_input=game_state.description)
+                    # command = response['command']
+                    command = "Look"
+                    stuck_buffer += stuck_inc
+                    stuck = 0
+
+                # Step the game world
+                game_state = self.step_world(command)
+                if i >= self.max_steps:
+                    break
+
+            self.world.render()  # Final message.
+            # except KeyboardInterrupt:
+            #     pass
+            # except Exception as e:
+            #     print(e)
+            end = time.time()    
+            minutes = (end - start) / 60
+            print(f"Played {game_state.moves} steps with {self.npcs_used} NPCs, scoring {game_state.score} points.")
+            print(f"Time elapsed: {minutes:.2f} minutes")
+            format_toks(cb.total_tokens)
+
