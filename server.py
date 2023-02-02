@@ -5,10 +5,9 @@ from flask import Flask, send_from_directory, request
 from waitress import serve # type: ignore
 from uuid import uuid4
 from npc.game import Game
-from npc.apps import DiffusionApp, Summarizer, DalleApp
+from npc.apps import Summarizer, DalleApp
 
 app = Flask(__name__)
-diffusion = DiffusionApp('sd2')
 dalle = DalleApp("256x256")
 summarizer = Summarizer()
 
