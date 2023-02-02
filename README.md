@@ -13,7 +13,7 @@ This is a demo using a language model agent to play text adventure games like [Z
 
 The demo requires a game file for Zork. You can download the game file from [the Internet Archive](https://archive.org/download/Zork1Release88Z-machineFile/zork1.z5).
 
-You will also need an API key from [OpenAI](https://openai.com/api/pricing/) for GPT-3 predictions, and an API key from [Replicate](https://replicate.com/pricing) for image generation. 
+You will also need an API key from [OpenAI](https://openai.com/api/pricing/).
 
 ### Run with Docker
 
@@ -32,7 +32,6 @@ Next, create a `.env` file in the `npc` directory and add
    
 ```bash
 OPENAI_API_KEY=<your openai api key>
-REPLICATE_API_KEY=<your replicate api key>
 ```
 <small>(without the `<` and `>` marks)</small>
 
@@ -72,7 +71,6 @@ Next, create a `.env` file in the `npc` directory and add
    
 ```bash
 OPENAI_API_KEY=<your openai api key>
-REPLICATE_API_KEY=<your replicate api key>
 ```
 <small>(without the `<` and `>` marks)</small>
 
