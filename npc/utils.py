@@ -33,5 +33,7 @@ def format_toks(toks):
     print(f"Tokens: {toks} ${cost:.2f}")
 
 def format_notes(response):
-    notes = [response[x] for x in ['simulation', 'plan']]
+    keys = ['simulation', 'plan']
+    notes = "\n".join([f"{response[k]}" for k in keys])
     print(notes)
+    return notes

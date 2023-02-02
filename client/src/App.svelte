@@ -4,6 +4,7 @@ import History from './components/History.svelte';
 import Overlay from './components/Overlay.svelte';
 import Background from './components/Background.svelte';
 import { fade, slide } from 'svelte/transition';
+import { onMount, onDestroy } from 'svelte';
 
 let sessionId = "";
 let output = "";
@@ -14,29 +15,26 @@ let notes = "";
 let shem = "";
 let showShem = false;
 
-function toggleShem() {
-	showShem = !showShem
-}
-
-function startGame() {
-if (sessionId != "") {
-	fetch("./api/stop/" + sessionId)
-		.then((response) => response.json())
-		.then((data) => {
-			console.log("Closed session: " + sessionId);
+async function startGame() {
+	if (sessionId) {
+	await fetch(`./api/stop/${sessionId}`)
+		.then(response => response.json())
+		.then(data => {
+		console.log(`Closed session: ${sessionId}`);
 		});
-}
+	}
 
-fetch("./api/start")
-	.then((response) => response.json())
-	.then((data) => {
+	await fetch("./api/start")
+	.then(response => response.json())
+	.then(data => {
 		sessionId = data.sessionId;
 		shem = data.shem;
-		console.log("Session ID: " + sessionId);
+		console.log(`Session ID: ${sessionId}`);
 	});
-}
+};
 
-function sendCommand() {
+$: sendCommand = async () => {
+	console.log(command, suggestion)
 	if (command == "") {
 		command = suggestion
 		suggestion = ""
@@ -46,71 +44,90 @@ function sendCommand() {
 	suggestion = ""
 	background = ""
 	output = ""
-	notes = ""
+	// notes = ""
 
 	// send command to server
-	fetch("./api/step_world/" + sessionId + "/" + sent)
-		.then((response) => response.json()) // parse the JSON from the server
-		.then((data) => {
-			output = data.feedback;
-			console.log(output)
-		}).then((data) => {
-			fetch("./api/get_image/" + sessionId)
-				.then((response) => response.json()) // parse the JSON from the server
-				.then((data) => {
-					background = data.image_url;
-					console.log(background)
-				});
+	await fetch(`./api/step_world/${sessionId}/${sent}`)
+	.then(response => response.json())
+	.then(data => {
+		output = data.feedback;
+		console.log(output);
+	});
 	
-		});
-}
+	await fetch(`./api/get_image/${sessionId}`)
+	.then(response => response.json())
+	.then(data => {
+		background = data.image_url;
+		console.log(background);
+	});
+};
 
 function handleKeyDown(event) {
 	if (event.key === "Enter") {
-		sendCommand()
+	sendCommand()
 	}
 	if (event.key === "Enter" && event.shiftKey) {
-		stepAgent()
+	stepAgent()
 	}
+};
+
+$: stepAgent = async () => {
+	if (command == "" && suggestion != "") {
+		await sendCommand();
+	}
+	command = "";
+	notes = "";
+	await fetch(`./api/step_agent/${sessionId}`)
+	.then(response => response.json())
+	.then(data => {
+		console.log(data);
+		notes = data.notes;
+		console.log(notes);
+		suggestion = data.command;
+		if (auto) {
+			setTimeout(stepAgent, 2000);
+		}
+	});
+};
+
+$: setNewShem = async () => {
+  await fetch(`./api/set_shem/${sessionId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ shem })
+  })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data)
+})
+};
+
+// toggle 
+let auto = false
+function toggleAuto() {
+	auto = !auto
 }
 
-function stepAgent() {
-	if (command == "" && suggestion != "") {
-		sendCommand()
-	}
-	command = ""
-	notes = ""
-	fetch("./api/step_agent/" + sessionId)
-		.then((response) => response.json()) // parse the JSON from the server
-		.then((data) => {
-			console.log(data)
-			notes = data.command.notes
-			console.log(notes)
-			return data
-		}).then((data) => {
-				suggestion = data.command.command			
-		}
-	);
-}
-// the set_shem api call takes JSON with a 'shem' key
-function setNewShem() {
-	fetch("./api/set_shem/" + sessionId, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({shem: shem})
-	})
-	.then((response) => response.json())
-	.then((data) => {
-		console.log(data)
-	})
+function toggleShem() {
+	showShem = !showShem
 }
 
 // start a game when the page loads
-startGame();
-//wait a second and then send the command
-// setTimeout(sendCommand, 1500);
+onMount(async () => {
+  await startGame();
+});
+
+window.addEventListener('beforeunload', () => {
+    stopGame();
+});
+
+onDestroy(() => {
+	stopGame();
+    window.removeEventListener('beforeunload', stopGame);
+});
+
 </script>
 
 <!-- Simple text adventure UI with a textinput, send button, and output window -->
@@ -139,6 +156,8 @@ startGame();
 				<button on:click={sendCommand} class="input-button" title="Send command">↵</button>
 				<button on:click={toggleShem} class="input-button" title="Edit bot">📜</button>
 				<button on:click={stepAgent} class="input-button" title="Run bot">⇥</button>
+				<!-- toggle for automode -->
+				<button on:click={toggleAuto} class="input-button toggle-button" title="Toggle auto mode">🤖</button>
 			</div>
 		</div>
 		{#if showShem}
@@ -206,7 +225,10 @@ startGame();
 		align-items: center;
         width: 100%;
 	}
-
+	/* toggle button stays darkened while auto is true */
+	.toggle-button {
+		background-color: rgba(255, 228, 102, 0.1);
+	}
 	.input-button {
 		background-color: transparent;
 		/* have to animate it a little on click so it doesn't look like it's not working */

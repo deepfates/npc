@@ -56,20 +56,8 @@ async def step_world(session_id, command):
 @app.route("/api/step_agent/<session_id>")
 async def step_agent(session_id):
     game = games[session_id]
-    command = game.step_agent()
-    return {"command": command}
-    command, notes = game.step_agent()
-    return {"command": command, "notes": notes}
-
-@app.route("/api/get_notes/<session_id>")
-async def get_notes(session_id):
-    game = games[session_id]
-    return game.notes
-
-@app.route("/api/get_tools/<session_id>")
-async def get_tools(session_id):
-    game = games[session_id]
-    return game.tools
+    resp = game.step_agent()
+    return resp
 
 @app.route("/api/get_image/<session_id>")
 async def get_image(session_id):

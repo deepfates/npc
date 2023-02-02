@@ -27,27 +27,47 @@ class Game():
         self.agent = NPC(shem=shem)
         self.shem = shem
         self.max_steps = max_steps
+        self.steps = 0
         self.notes = "No notes yet"
+        self.log = []
         self.npcs_used = 1
-        # self.shem = self.agent.prompt.template
+        self.stuck = 0
+        self.stuck_threshold = 2
+        self.stuck_increment = 2
+        self.shem = self.agent.shem
     
     def get_state(self):
         return dict([item for item in self.world.state.items() if item[0] != 'location'])
 
     def new_npc(self, shem=SHEM):
         """Create a new NPC agent."""
-        print("Creating new NPC agent")
         memories = {**self.agent.s_chain.memory.dict()['memories'][0]['store']}
         self.agent = None
         self.agent = NPC(shem=shem, memories=memories)
-        # print("Memories:", self.agent.s_chain.memory.dict()['memories'][0]['store'])
         self.npcs_used += 1
-        print("New NPC agent created, #" + str(self.npcs_used))
+        notif = "New NPC agent created, #" + str(self.npcs_used)
+        print(notif)
+        self.log.append(notif)
         self.shem = shem
-        
+
+    def check_stuck(self, command):
+        if self.world.state.last_command == command:
+            self.stuck += 1
+        if self.steps > self.world.state.moves + self.stuck_threshold:
+            self.stuck += 1
+        if self.stuck > 2:
+            self.log.append("Stuck, creating new NPC")
+            self.new_npc()
+            command = "Look"
+            self.stuck_threshold += self.stuck_increment
+            self.stuck = 0
+        return command
+                    
     def step_world(self, command):
         """Send the agent's command to the game world and receive feedback."""
         game_state, _, _ = self.world.step(command)
+        self.log.append(format_scene(game_state))
+        self.steps += 1
         return game_state
     
     def step_agent(self):
@@ -55,59 +75,41 @@ class Game():
         """Send the game state to the agent and receive the agent's command."""
         scene = format_scene(game_state)
         response = self.agent.act(human_input=scene)
-        self.notes = format_notes(response)
+        notes = format_notes(response)
+        self.notes = notes
+        self.log.append(self.notes)
         command = format_command(response)
-        response = {'command': command, 'notes': self.notes}
+        self.log.append(command)
+        command = self.check_stuck(command)
+        response = {'command': command, 'notes': notes}
         return response
 
     def run(self):
         start = time.time()
         """Step through the game loop, sending the agent's intentions to the game world and receiving feedback."""
         game_state = self.world.reset()
-        # try:
         done = False
         i = 0
-        stuck_buffer = 2
-        stuck_inc = 2
-        stuck = 0
+        # Start the game loop
         with get_openai_callback() as cb:
-
-
             while not done:
                 i += 1
                 print("#"*50, i)
                 # This is where the action happens
                 resp = self.step_agent()
                 command = resp['command']
-
-                # If it's trying the same command over and over, rebuild the NPC
-                if game_state.last_command == command:
-                    stuck += 1
-
-                if i > game_state.moves + stuck_buffer:
-                    stuck += 1
-
-                if stuck > 2:
-                    self.new_npc()
-                    # response = self.agent.act(human_input=game_state.description)
-                    # command = response['command']
-                    command = "Look"
-                    stuck_buffer += stuck_inc
-                    stuck = 0
+                command = self.check_stuck(command)
 
                 # Step the game world
                 game_state = self.step_world(command)
                 if i >= self.max_steps:
                     break
-
+            # Game over
             self.world.render()  # Final message.
-            # except KeyboardInterrupt:
-            #     pass
-            # except Exception as e:
-            #     print(e)
-            end = time.time()    
-            minutes = (end - start) / 60
             print(f"Played {game_state.moves} steps with {self.npcs_used} NPCs, scoring {game_state.score} points.")
-            print(f"Time elapsed: {minutes:.2f} minutes")
             format_toks(cb.total_tokens)
+        # End the game loop
+        end = time.time()    
+        minutes = (end - start) / 60
+        print(f"Time elapsed: {minutes:.2f} minutes")
 

@@ -29,7 +29,7 @@ I must decide the next command using the following format:
 ```
 Simulation: Consider the environment, characters, and objects in the scene.
 Plan: Consider the overall goals of the game, the current state of the game, and the available options.
-Command: Generate command text based on the available commands and the context of the scene.
+Command: Generate command text based on the plan.
 ```
 Begin!
 ---
@@ -38,7 +38,6 @@ Memories:{entities}
 {chat_history}
 Game:{human_input}
 NPC:"""
-
 
 sim_cot = ChainSignature(
         template=COT_PREFIX + """Simulation:""",
