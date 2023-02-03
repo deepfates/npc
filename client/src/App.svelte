@@ -9,9 +9,15 @@ import { onMount, onDestroy } from 'svelte';
 
 let sessionId = "";
 let output = "";
+let location = "";
+let score = "0";
+let moves = "0";
+let loading = 0;
 let background = "";
+
 let suggestion = "Look around";
 let command = "";
+
 let thoughts = "";
 let shem = "";
 let showShem = false;
@@ -22,11 +28,12 @@ let llmTokens = 53;
 let llmTemp = 0.0;
 
 async function startGame() {
+	loading += 1;
 	if (sessionId) {
 	await fetch(`./api/stop/${sessionId}`)
 		.then(response => response.json())
 		.then(data => {
-		console.log(`Closed session: ${sessionId}`);
+		// console.log(`Closed session: ${sessionId}`);
 		});
 	}
 
@@ -35,12 +42,14 @@ async function startGame() {
 	.then(data => {
 		sessionId = data.sessionId;
 		shem = data.shem;
-		console.log(`Session ID: ${sessionId}`);
+		// console.log(`Session ID: ${sessionId}`);
+		loading -= 1;
 	});
 };
 
 $: sendCommand = async () => {
-	console.log(command, suggestion)
+	loading += 2;
+	// console.log(command, suggestion)
 	if (command == "") {
 		command = suggestion
 		suggestion = ""
@@ -56,17 +65,25 @@ $: sendCommand = async () => {
 	await fetch(`./api/step_world/${sessionId}/${sent}`)
 	.then(response => response.json())
 	.then(data => {
-		output = data.feedback;
-		console.log(output);
+		console.log(data);
+		// location is just the first line of the descriptioni
+		location = data.description.split("\n")[0];
+		output = data.feedback.replace(location, "", 1);
+		score = data.score;
+		moves = data.moves;
+		loading -= 1;
 	});
 	
 	await fetch(`./api/get_image/${sessionId}`)
 	.then(response => response.json())
 	.then(data => {
 		background = data.image_url;
-		console.log(background);
+		loading -= 1;
+		// console.log(background);
 	});
 };
+
+$: console.log(loading)
 
 function handleKeyDown(event) {
 	if (event.key === "Enter") {
@@ -78,7 +95,8 @@ function handleKeyDown(event) {
 };
 
 $: stepAgent = async () => {
-	if (command == "" && suggestion != "") {
+	loading += 1;
+	if (command != "" || suggestion != "") {
 		await sendCommand();
 	}
 	command = "";
@@ -86,10 +104,11 @@ $: stepAgent = async () => {
 	await fetch(`./api/step_agent/${sessionId}`)
 	.then(response => response.json())
 	.then(data => {
-		console.log(data);
+		// console.log(data);
 		thoughts = data.notes;
-		console.log(thoughts);
+		// console.log(thoughts);
 		suggestion = data.command;
+		loading -= 1;
 		if (auto) {
 			setTimeout(stepAgent, 2000);
 		}
@@ -97,6 +116,7 @@ $: stepAgent = async () => {
 };
 
 $: buildNPC = async () => {
+	loading += 1;
 	toggleShem() 
 	await fetch(`./api/set_shem/`, {
     method: "POST",
@@ -107,7 +127,8 @@ $: buildNPC = async () => {
   })
     .then(response => response.json())
     .then(data => {
-      console.log(data)
+		loading -= 1;
+      // console.log(data)
 })
 };
 
@@ -155,6 +176,14 @@ onDestroy(() => {
 	{/if}
 	<Overlay>
 		<div class="interface">
+			<div class="header">
+					<p>{location}</p>
+					<div class="score">
+						<p>Score: {score}</p>
+						<p>Moves: {moves}</p>
+						<div class="blob {loading > 0 ? 'blob-pulse' : ''}"></div>
+					</div>
+			</div>
 			<History output={output}/>
 			{#if thoughts}
 				<div class="thoughts">
@@ -385,5 +414,56 @@ onDestroy(() => {
 		height: 100%;
 		padding: 0 0.5rem;
 	}
+
+	.header {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
+		padding: 0.5rem 0;
+	}
+
+	.header p {
+		margin: 0;
+		padding: 0;
+	}
+
+	.score {
+		display: flex;
+		flex-direction: row;
+		gap: 0.5rem;
+		align-items: center;
+	}
+
+	.blob {
+	background: rgba(24, 19, 0, 0.5);
+	border-radius: 50%;
+	width: 0.62rem;
+	height: 0.62rem;
+	}
+
+	.blob-pulse {
+		background: rgba(255, 228, 102, 0.9);
+		transform: scale(1);
+		animation: pulse 2s infinite;	
+	}
+
+@keyframes pulse {
+	0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 228, 102, 0.7);
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0.5rem rgba(255, 228, 102, 0);
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 228, 102, 0);
+  }
+}
 
 </style>
