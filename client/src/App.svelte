@@ -32,7 +32,7 @@ let buttonsLoading = {
 }
 
 // connect to the server
-const socket = io('wss://0.0.0.0:8080', {
+const socket = io('ws://0.0.0.0:8080', {
     transports: ['websocket'],
     upgrade: false
 });
