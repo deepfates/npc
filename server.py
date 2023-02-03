@@ -11,7 +11,7 @@ from flask_socketio import SocketIO # type: ignore
 app = Flask(__name__)
 dalle = DalleApp("256x256")
 summarizer = Summarizer()
-socketio = SocketIO(app, )
+socketio = SocketIO(app, secure=True)
 
 @app.after_request
 def after_request(response):
