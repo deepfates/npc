@@ -3,11 +3,10 @@
 ## FIX
 [] wrong session id crashes the game
 ## ADD
-[] websockets
+[x] websockets
 [] param interface
 ## UI
-[] better interface
-[] use stores
+[x] better interface
 [] full log
 [] orchestration
 
