@@ -6,6 +6,10 @@ from langchain.agents import Tool
 from langchain.callbacks import get_openai_callback
 import time
 
+STUCK_LENGTH = 2
+MEM_LENGTH = 10
+TEMP = 0.0
+TOKS = 53
 class Game():
     """High-level game class that handles the game loop and agent interaction.
     
@@ -32,18 +36,20 @@ class Game():
         self.log = []
         self.npcs_used = 1
         self.stuck = 0
-        self.stuck_threshold = 2
-        self.stuck_increment = 2
+        self.stuck_threshold = STUCK_LENGTH
+        self.stuck_increment = STUCK_LENGTH
         self.shem = self.agent.shem
     
     def get_state(self):
         return dict([item for item in self.world.state.items() if item[0] != 'location'])
 
-    def new_npc(self, shem=SHEM):
+    def new_npc(self, shem=SHEM, stuck_length=STUCK_LENGTH, mem_length=MEM_LENGTH, temp=TEMP, toks=TOKS):
         """Create a new NPC agent."""
         memories = {**self.agent.s_chain.memory.dict()['memories'][0]['store']}
         self.agent = None
-        self.agent = NPC(shem=shem, memories=memories)
+        self.agent = NPC(shem=shem, memories=memories, mem_length=mem_length, temp=temp, toks=toks)
+        self.stuck_threshold = stuck_length
+        self.stuck_increment = stuck_length
         self.npcs_used += 1
         notif = "New NPC agent created, #" + str(self.npcs_used)
         print(notif)

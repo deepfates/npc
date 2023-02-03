@@ -28,13 +28,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 model = "text-davinci-003"
-llm = OpenAI(model_name=model, temperature=0.0, max_tokens=53, stop=["\n",">","Game:", "```"])
 
 
 class NPC:
     """NPC agent using just a hand-coded sequence of chains.
     Still accepts a shem for motivation."""
-    def __init__(self, shem="", memories = {}):
+    def __init__(self, shem="", memories = {}, mem_length=10, temp = 0.0, toks=53):
+        self.llm = OpenAI(model_name=model, temperature=temp, max_tokens=toks, stop=["\n",">","Game:", "```"])
+
         self.shem = shem
         # Build the chains
         prompts = [sim_cot, plan_cot, cmd_cot]
@@ -43,7 +44,7 @@ class NPC:
         # self.chains[-1].verbose = True
         # Build the memory
         chat_history = CBWMMemory(
-            k=10,
+            k=mem_length,
             memory_key="chat_history",  
             human_prefix="Game", 
             ai_prefix="NPC",
@@ -51,8 +52,8 @@ class NPC:
             output_key="all",
         )
         entities = CEMMemory(
-            k=10,
-            llm=llm,
+            k=mem_length,
+            llm=self.llm,
             memory_keys=["entities", "chat_history"],
             human_prefix="Game", 
             ai_prefix="NPC",
@@ -80,7 +81,7 @@ class NPC:
 
     def __build_chain__(self, chain_signature):
         return LLMChain(
-            llm=llm,
+            llm=self.llm,
             prompt=self.__build_prompt__(chain_signature),
             output_key=chain_signature.returns,
             # verbose=True,

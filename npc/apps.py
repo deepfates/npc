@@ -13,9 +13,8 @@ class DalleApp:
         self.size = size
         self.cache = {}
 
-    async def get_image(self, text):
-        start = time.time()
-
+    def get_image(self, text):
+        """Get an image from OpenAI's DALL-E model."""
         if text in self.cache:
             # print(f"Using cached image for {text}")
             return self.cache[text]
@@ -26,8 +25,6 @@ class DalleApp:
             size=self.size,
             api_key=os.getenv("OPENAI_API_KEY"),
             )
-        end = time.time()
-        # print(f"Time to generate image: {end - start}")
 
         url = response['data'][0]['url']
         url = str(url)

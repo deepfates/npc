@@ -6,10 +6,19 @@ from waitress import serve # type: ignore
 from uuid import uuid4
 from npc.game import Game
 from npc.apps import Summarizer, DalleApp
+from flask_socketio import SocketIO # type: ignore
 
 app = Flask(__name__)
 dalle = DalleApp("256x256")
 summarizer = Summarizer()
+socketio = SocketIO(app, )
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'http://0.0.0.0:8080')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 # Utilities for operating the game
 def get_game():
@@ -28,58 +37,59 @@ def get_prompt(game_state):
 games: Dict[str, Game] = {}
 
 # API paths for the game
-@app.route("/api/start")
+@socketio.on('start')
 def start():
     session_id = str(uuid4())
     games[session_id] = get_game()
     shem = games[session_id].agent.shem
     resp = {"sessionId": session_id, "shem": shem}
     # print(resp)
-    return resp
+    socketio.emit('start_response', resp)
 
-@app.route("/api/stop/<session_id>")
+@socketio.on('stop')
 def stop(session_id):
     del games[session_id]
     resp = {"sessionId": session_id}
     print(resp)
-    return resp
+    socketio.emit('stop_response', resp)
 
-@app.route("/api/step_world/<session_id>/<command>")
-async def step_world(session_id, command):
+@socketio.on('step_world')
+def step_world(data):
+    print(data)
+    session_id = data['session_id']
+    command = data['command']
     game = games[session_id]
     game.step_world(command)
     game_state = game.get_state()
-    return game_state
+    socketio.emit('step_world_response', game_state)
+    prompt = get_prompt(game_state)
+    output = dalle.get_image(prompt)
+    resp = {'image_url': output}
+    socketio.emit('get_image_response', resp)
 
 # API paths for the bot
-@app.route("/api/step_agent/<session_id>")
-async def step_agent(session_id):
+@socketio.on('step_agent')
+def step_agent(data):
+    session_id = data['session_id']
     game = games[session_id]
     resp = game.step_agent()
-    return resp
-
-@app.route("/api/get_image/<session_id>")
-async def get_image(session_id):
-    game = games[session_id]
-    game_state = game.get_state()
-    prompt = get_prompt(game_state)
-    # print(prompt)
-    # output = await diffusion.get_image(prompt)
-    output = await dalle.get_image(prompt)
-    resp = {'image_url': output}
-    # print(resp)
-    return resp
+    socketio.emit('step_agent_response', resp)
     
 # API route for making a new NPC with a different shem
 # Need to use JSON here rather than string parameters
-@app.route("/api/set_shem/<session_id>", methods=['POST'])
-async def set_shem(session_id):
+@socketio.on('set_shem')
+def set_shem(data):
+    session_id = data['session_id']    
+    shem = data['shem']
+    mem_length = data['memLength']
+    stuck_length = data['stuckLength']
+    temp = data['llmTemp']
+    toks = data['llmTokens']
     game = games[session_id]
-    shem = request.json['shem']
-    game.new_npc(shem)
-    resp = {"sessionId": session_id, "shem": shem}
+    game.new_npc(shem, mem_length, stuck_length, temp, toks)
+    resp = {"sessionId": session_id, "shem": shem, "memLength": mem_length, "stuckLength": stuck_length, "llmTemp": temp, "llmTokens": toks}
     print(resp)
-    return resp
+    socketio.emit('set_shem_response', resp)
 
 
 # Path for our main Svelte page
@@ -102,9 +112,6 @@ if __name__ == "__main__":
     debug = args.debug
     
     if debug:
-        app.run(debug=True,
-                host="0.0.0.0",
-                port=8080)  
-
+        app.run(debug=True, host='0.0.0.0', port=8080)
     else:
-        serve(app, host="0.0.0.0", port=8080)
+        serve(app, host='0.0.0.0', port=8080)
