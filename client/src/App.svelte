@@ -237,8 +237,17 @@ onDestroy(() => {
 		margin: 0;
 		padding: 0;
 		color: #ffe466;
-		font-family: 'VT323', monospace;
-        font-size: 2rem;
+		font-family: 'VT323', ui-monospace, 
+             Menlo, Monaco, 
+             "Cascadia Mono", "Segoe UI Mono", 
+             "Roboto Mono", 
+             "Oxygen Mono", 
+             "Ubuntu Monospace", 
+             "Source Code Pro",
+             "Fira Mono", 
+             "Droid Sans Mono", 
+             "Courier New", monospace;
+			 font-size: 2rem;
         text-shadow: 1px 1px 1px #181300;
 		background: #181300;
 
