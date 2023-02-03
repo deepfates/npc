@@ -1,27 +1,14 @@
 # What do i need to do now?
 
 ## FIX
-[x] insert thought traces into the memory at each turn instead of "Agent stopped due to max iterations."
-[x] build more formal versions of `npc` and `go`
-
+[] wrong session id crashes the game
 ## ADD
-[x] tools for thinking about the world
-[x] translate tool for making likely commands
-[x] long-term memory storage / data augmentation
-[x] goal management
+[x] websockets
+[] param interface
 ## UI
-[x] visualize scene with diffusion
-[x] interactive game playing
-[x] interactive prompt/goal setting
-[x] html display with 
-    [x] scene image
-    [x] scene text
-    [x] thoughts
-    [x] actions 
-    [x] shem
-    [] more Sveltey
-    [] param interface
-    [] full log
+[x] better interface
+[] full log
+[] orchestration
 
 
 ## NOTES

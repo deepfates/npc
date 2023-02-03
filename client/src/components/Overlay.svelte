@@ -7,7 +7,7 @@
         box-shadow: inset 0 0 5em 1em rgb(24, 19, 0);
         background-color: rgba(24, 19, 0, 0.2);
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         position: relative;
