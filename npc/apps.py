@@ -13,7 +13,7 @@ class DalleApp:
         self.size = size
         self.cache = {}
 
-    def get_image(self, text):
+    async def get_image(self, text):
         """Get an image from OpenAI's DALL-E model."""
         if text in self.cache:
             # print(f"Using cached image for {text}")

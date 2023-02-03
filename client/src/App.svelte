@@ -6,16 +6,13 @@ import Overlay from './components/Overlay.svelte';
 import Background from './components/Background.svelte';
 import { fade, slide } from 'svelte/transition';
 import { onMount, onDestroy } from 'svelte';
-import io from 'socket.io-client';
 
 let sessionId = "";
 let output = "";
 let background = "";
 let suggestion = "Look around";
-
 let command = "";
 let thoughts = "";
-
 let shem = "";
 let showShem = false;
 
@@ -24,36 +21,26 @@ let stuckLength = 2;
 let llmTokens = 53;
 let llmTemp = 0.0;
 
-let buttonsLoading = {
-	"send": false,
-	"step": false,
-	"auto": false,
-	"shem": false
-}
-
-// connect to the server
-const socket = io('http://localhost:8080', {
-	secure: true,
-    transports: ['websocket'],
-    upgrade: false
-});
-
 async function startGame() {
 	if (sessionId) {
-		socket.emit('stop', {session_id: sessionId});
+	await fetch(`./api/stop/${sessionId}`)
+		.then(response => response.json())
+		.then(data => {
+		console.log(`Closed session: ${sessionId}`);
+		});
 	}
 
-	socket.emit('start');
-	socket.on('start_response',async data => {
+	await fetch("./api/start")
+	.then(response => response.json())
+	.then(data => {
 		sessionId = data.sessionId;
 		shem = data.shem;
-
-		// console.log(`Session ID: ${sessionId}`);
+		console.log(`Session ID: ${sessionId}`);
 	});
 };
 
 $: sendCommand = async () => {
-	// console.log(command, suggestion)
+	console.log(command, suggestion)
 	if (command == "") {
 		command = suggestion
 		suggestion = ""
@@ -66,7 +53,19 @@ $: sendCommand = async () => {
 	thoughts = ""
 
 	// send command to server
-	socket.emit('step_world', {session_id: sessionId, command: sent});
+	await fetch(`./api/step_world/${sessionId}/${sent}`)
+	.then(response => response.json())
+	.then(data => {
+		output = data.feedback;
+		console.log(output);
+	});
+	
+	await fetch(`./api/get_image/${sessionId}`)
+	.then(response => response.json())
+	.then(data => {
+		background = data.image_url;
+		console.log(background);
+	});
 };
 
 function handleKeyDown(event) {
@@ -83,12 +82,33 @@ $: stepAgent = async () => {
 		await sendCommand();
 	}
 	command = "";
-	socket.emit('step_agent', {session_id: sessionId});
+	thoughts = "";
+	await fetch(`./api/step_agent/${sessionId}`)
+	.then(response => response.json())
+	.then(data => {
+		console.log(data);
+		thoughts = data.notes;
+		console.log(thoughts);
+		suggestion = data.command;
+		if (auto) {
+			setTimeout(stepAgent, 2000);
+		}
+	});
 };
 
 $: buildNPC = async () => {
-	socket.emit('set_shem', {session_id:sessionId, shem: shem, memLength: memLength, stuckLength: stuckLength, llmTokens: llmTokens, llmTemp: llmTemp});
-	toggleShem()
+	toggleShem() 
+	await fetch(`./api/set_shem/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ sessionId, shem, memLength, stuckLength, llmTokens, llmTemp })
+  })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data)
+})
 };
 
 // toggles
@@ -105,53 +125,25 @@ function toggleShem() {
 }
 
 // start a game when the page loads
-// and send the placeholder after a second
 onMount(async () => {
-	await startGame();
-	setTimeout(sendCommand, 1000);
+  await startGame();
+  setTimeout(sendCommand, 1000);
 });
 
 window.addEventListener('beforeunload', () => {
-	stopGame();
+    stopGame();
 });
 
 onDestroy(() => {
 	stopGame();
-	window.removeEventListener('beforeunload', stopGame);
-});
-
-// listen for responses from the server
-socket.on('step_world_response',async data => {
-	// console.log(data)
-	output = data.feedback;
-	// console.log(output);
-});
-
-socket.on('get_image_response',async data => {
-	// console.log(data)
-	background = data.image_url;
-	// console.log(background);
-});
-
-socket.on('step_agent_response',async data => {
-	// console.log(data);
-	thoughts = data.notes;
-	// console.log(thoughts);
-	suggestion = data.command;
-	if (auto) {
-		setTimeout(stepAgent, 2000);
-	}
-});
-
-socket.on('set_shem_response',async data => {
-
-	console.log(data)
+    window.removeEventListener('beforeunload', stopGame);
 });
 
 </script>
 
 <!-- Simple text adventure UI with a textinput, send button, and output window -->
 <svelte:head>
+	<link rel="icon" href="vintage-robot.svg">
 	<link rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=VT323">
 	<title>NPC</title>
@@ -180,7 +172,7 @@ socket.on('set_shem_response',async data => {
 			</div>
 		</div>
 		{#if showShem}
-		<div	transition:fade class="shem">
+		<div	transition:slide class="shem">
 			<textarea 
 				bind:value={shem}
 				placeholder="This is the script that the bot's agent loops through."
