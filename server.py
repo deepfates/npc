@@ -15,7 +15,7 @@ socketio = SocketIO(app, secure=True)
 
 @app.after_request
 def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', 'http://0.0.0.0:8080')
+    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:8080')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
@@ -112,6 +112,6 @@ if __name__ == "__main__":
     debug = args.debug
     
     if debug:
-        socketio.run(app, debug=True, host='0.0.0.0', port=8080)
+        socketio.run(app, debug=True, host='localhost', port=8080)
     else:
-        socketio.run(app, host='0.0.0.0', port=8080)
+        socketio.run(app, host='localhost', port=8080)

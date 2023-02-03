@@ -32,7 +32,8 @@ let buttonsLoading = {
 }
 
 // connect to the server
-const socket = io('wss://localhost:8080', {
+const socket = io('http://localhost:8080', {
+	secure: true,
     transports: ['websocket'],
     upgrade: false
 });
@@ -47,12 +48,12 @@ async function startGame() {
 		sessionId = data.sessionId;
 		shem = data.shem;
 
-		console.log(`Session ID: ${sessionId}`);
+		// console.log(`Session ID: ${sessionId}`);
 	});
 };
 
 $: sendCommand = async () => {
-	console.log(command, suggestion)
+	// console.log(command, suggestion)
 	if (command == "") {
 		command = suggestion
 		suggestion = ""
@@ -121,21 +122,21 @@ onDestroy(() => {
 
 // listen for responses from the server
 socket.on('step_world_response',async data => {
-	console.log(data)
+	// console.log(data)
 	output = data.feedback;
-	console.log(output);
+	// console.log(output);
 });
 
 socket.on('get_image_response',async data => {
-	console.log(data)
+	// console.log(data)
 	background = data.image_url;
-	console.log(background);
+	// console.log(background);
 });
 
 socket.on('step_agent_response',async data => {
-	console.log(data);
+	// console.log(data);
 	thoughts = data.notes;
-	console.log(thoughts);
+	// console.log(thoughts);
 	suggestion = data.command;
 	if (auto) {
 		setTimeout(stepAgent, 2000);
