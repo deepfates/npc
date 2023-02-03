@@ -1,34 +1,52 @@
 <!-- We're on the same Flask server as the game so can easily spin up  -->
+
 <script>
 import History from './components/History.svelte';
 import Overlay from './components/Overlay.svelte';
 import Background from './components/Background.svelte';
 import { fade, slide } from 'svelte/transition';
 import { onMount, onDestroy } from 'svelte';
+import io from 'socket.io-client';
 
 let sessionId = "";
 let output = "";
 let background = "";
 let suggestion = "Look around";
+
 let command = "";
-let notes = "";
+let thoughts = "";
+
 let shem = "";
 let showShem = false;
 
+let memLength = 10;
+let stuckLength = 2;
+let llmTokens = 53;
+let llmTemp = 0.0;
+
+let buttonsLoading = {
+	"send": false,
+	"step": false,
+	"auto": false,
+	"shem": false
+}
+
+// connect to the server
+const socket = io('http://0.0.0.0:8080', {
+    transports: ['websocket'],
+    upgrade: false
+});
+
 async function startGame() {
 	if (sessionId) {
-	await fetch(`./api/stop/${sessionId}`)
-		.then(response => response.json())
-		.then(data => {
-		console.log(`Closed session: ${sessionId}`);
-		});
+		socket.emit('stop', {session_id: sessionId});
 	}
 
-	await fetch("./api/start")
-	.then(response => response.json())
-	.then(data => {
+	socket.emit('start');
+	socket.on('start_response',async data => {
 		sessionId = data.sessionId;
 		shem = data.shem;
+
 		console.log(`Session ID: ${sessionId}`);
 	});
 };
@@ -44,22 +62,10 @@ $: sendCommand = async () => {
 	suggestion = ""
 	background = ""
 	output = ""
-	// notes = ""
+	thoughts = ""
 
 	// send command to server
-	await fetch(`./api/step_world/${sessionId}/${sent}`)
-	.then(response => response.json())
-	.then(data => {
-		output = data.feedback;
-		console.log(output);
-	});
-	
-	await fetch(`./api/get_image/${sessionId}`)
-	.then(response => response.json())
-	.then(data => {
-		background = data.image_url;
-		console.log(background);
-	});
+	socket.emit('step_world', {session_id: sessionId, command: sent});
 };
 
 function handleKeyDown(event) {
@@ -76,38 +82,21 @@ $: stepAgent = async () => {
 		await sendCommand();
 	}
 	command = "";
-	notes = "";
-	await fetch(`./api/step_agent/${sessionId}`)
-	.then(response => response.json())
-	.then(data => {
-		console.log(data);
-		notes = data.notes;
-		console.log(notes);
-		suggestion = data.command;
-		if (auto) {
-			setTimeout(stepAgent, 2000);
-		}
-	});
+	socket.emit('step_agent', {session_id: sessionId});
 };
 
-$: setNewShem = async () => {
-  await fetch(`./api/set_shem/${sessionId}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ shem })
-  })
-    .then(response => response.json())
-    .then(data => {
-      console.log(data)
-})
+$: buildNPC = async () => {
+	socket.emit('set_shem', {session_id:sessionId, shem: shem, memLength: memLength, stuckLength: stuckLength, llmTokens: llmTokens, llmTemp: llmTemp});
+	toggleShem()
 };
 
-// toggle 
+// toggles
 let auto = false
 function toggleAuto() {
 	auto = !auto
+	if (auto) {
+		stepAgent()
+	}
 }
 
 function toggleShem() {
@@ -115,17 +104,47 @@ function toggleShem() {
 }
 
 // start a game when the page loads
+// and send the placeholder after a second
 onMount(async () => {
-  await startGame();
+	await startGame();
+	setTimeout(sendCommand, 1000);
 });
 
 window.addEventListener('beforeunload', () => {
-    stopGame();
+	stopGame();
 });
 
 onDestroy(() => {
 	stopGame();
-    window.removeEventListener('beforeunload', stopGame);
+	window.removeEventListener('beforeunload', stopGame);
+});
+
+// listen for responses from the server
+socket.on('step_world_response',async data => {
+	console.log(data)
+	output = data.feedback;
+	console.log(output);
+});
+
+socket.on('get_image_response',async data => {
+	console.log(data)
+	background = data.image_url;
+	console.log(background);
+});
+
+socket.on('step_agent_response',async data => {
+	console.log(data);
+	thoughts = data.notes;
+	console.log(thoughts);
+	suggestion = data.command;
+	if (auto) {
+		setTimeout(stepAgent, 2000);
+	}
+});
+
+socket.on('set_shem_response',async data => {
+
+	console.log(data)
 });
 
 </script>
@@ -144,29 +163,46 @@ onDestroy(() => {
 	<Overlay>
 		<div class="interface">
 			<History output={output}/>
-			{#if notes}
-				<div transition:fade class="thoughts">
-					{notes}
+			{#if thoughts}
+				<div class="thoughts">
+					<p transition:slide >{thoughts}</p>
 				</div>
 			{/if}
 			<div class="input">
 				<span>>&nbsp;</span>
 				<!-- svelte-ignore a11y-autofocus -->
 				<input autofocus placeholder={suggestion} bind:value={command} on:keydown={handleKeyDown} class="commandline"/>
-				<button on:click={sendCommand} class="input-button" title="Send command">↵</button>
-				<button on:click={toggleShem} class="input-button" title="Edit bot">📜</button>
-				<button on:click={stepAgent} class="input-button" title="Run bot">⇥</button>
-				<!-- toggle for automode -->
-				<button on:click={toggleAuto} class="input-button toggle-button" title="Toggle auto mode">🤖</button>
+				<button on:click={sendCommand} class="input-button" title="Send command">⏵</button>
+				<button on:click={stepAgent} class="input-button" title="NPC play">⏯</button>
+				<button on:click={toggleAuto} class="input-button {auto ? 'toggled' : ''}" title="NPC autoplay">⏭</button>
+				<button on:click={toggleShem} class="input-button {showShem ? 'toggled' : ''}" title="Edit NPC">⏏</button>
 			</div>
 		</div>
 		{#if showShem}
 		<div	transition:fade class="shem">
 			<textarea 
 				bind:value={shem}
-				placeholder="Shem is the script that the bot's agent loops through."
+				placeholder="This is the script that the bot's agent loops through."
 			></textarea>
-			<button class="input-button" on:click={setNewShem}>↵</button>
+			<div class="shem-buttons">
+				<div class="input-w-label">
+					<span>Stuck</span>
+					<input class="input-number" type="number" id="stuck length" min="1" max="10" bind:value={stuckLength} />				
+				</div>
+				<div class="input-w-label">
+					<span>Memory</span>
+					<input class="input-number" type="number" id="memory length" min="1" max="10" bind:value={memLength} />				
+				</div>
+				<div class="input-w-label">
+					<span>Tokens</span>
+					<input class="input-number" type="number" id="LLM tokens"  min="40" max="400" bind:value={llmTokens} />
+				</div>
+				<div class="input-w-label">
+					<span>Temp</span>
+					<input class="input-number" type="number" id="LLM temp" min="0.0" max="1.0" bind:value={llmTemp} step="0.01"/>
+				</div>
+				<button class="input-button" on:click={buildNPC}>Build</button>
+			</div>
 		</div>	
 		{/if}
 	</Overlay>
@@ -191,6 +227,7 @@ onDestroy(() => {
 		background-size: 360% 180%;
 		animation: gradient-animation 8s ease infinite;
 		}
+		
 	@keyframes gradient-animation {
 		0% {
 			background-position: 50% 0%;
@@ -225,29 +262,40 @@ onDestroy(() => {
 		align-items: center;
         width: 100%;
 	}
-	/* toggle button stays darkened while auto is true */
-	.toggle-button {
-		background-color: rgba(255, 228, 102, 0.1);
-	}
 	.input-button {
-		background-color: transparent;
-		/* have to animate it a little on click so it doesn't look like it's not working */
-		transition: all 0.1s ease-in-out;
-		border: 1px solid #ffe466;
+		background-color: rgba(255, 228, 102, 0.1);
+		border: 1px solid rgba(255, 228, 102, 0.9);
 		color: #ffe466;
 		outline: none;
 		margin: 0;
 		padding: 0;
 		width: 4rem;
 		height: 3rem;		
+		box-shadow: 1px 1px 0 1px rgba(24, 19, 0, 0.5);
+		border-bottom: 2px solid rgba(255, 228, 102, 0.5);
+		border-right: 2px solid rgba(255, 228, 102, 0.5);
 	}
 	/* on hover, the button background lights up. on click it darkens a little */
 	.input-button:hover {
-		background-color: rgba(255, 228, 102, 0.2);
+		background-color: rgba(255, 228, 102, 0.3);
 	}
 	.input-button:active {
-		background-color: rgba(255, 228, 102, 0.1);
+		background-color: rgba(255, 228, 102, 0.2);
+		box-shadow: 1px 1px 0 1px rgba(24, 19, 0, 0.5), inset 1px 1px 0 1px rgba(24, 19, 0, 0.5);
 	}
+	/* toggled buttons use inset shadow and darker tone to look "pressed in" */
+	.toggled {
+		background-color: rgba(255, 228, 102, 0.3);
+		box-shadow: inset 1px 1px 0 1px rgba(24, 19, 0, 0.5);
+	}
+	/* loading buttons look like active buttons but they fluctuate to show they're doing something */
+	/* .loading {
+		background-color: rgba(255, 228, 102, 0.2);
+		box-shadow: inset 1px 1px 0 1px rgba(24, 19, 0, 0.5);
+		animation: loading 1s ease infinite;
+	} */
+
+
 	.commandline {
         background-color: transparent;
         border: none;
@@ -271,10 +319,21 @@ onDestroy(() => {
 
 	.thoughts {
 		font-size: 1.23rem;
+		width: 100%;
+		display: flex;
+		flex-direction: row;
+		justify-content: end;
+		align-items: end;
+		padding-bottom: 1rem;
+	}
+	.thoughts p {
+		text-align: end;
+		margin: 0;
+		padding: 0;
+		width: 62.8%;
 	}
 	.shem {
         font-size: 1.23rem;
-        width: 38.2%;
         height: 38.2%;
         display: flex;
         flex-direction: column;
@@ -301,4 +360,37 @@ onDestroy(() => {
         -ms-overflow-style: none;  /* IE and Edge */
         scrollbar-width: none;  /* Firefox */
     }
+
+	.shem-buttons {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
+		padding: 0.5rem 0;
+		
+	}
+
+	.input-number {
+		background-color: rgba(255, 228, 102, 0.1);
+		border: 1px solid rgba(255, 228, 102, 0.5);
+		color: #ffe466;
+		outline: none;
+		margin: 0;
+		padding: 0;
+		width: 4rem;
+		box-shadow: 1px 1px 0 1px rgba(24, 19, 0, 0.5);
+		border-bottom: 2px solid rgba(255, 228, 102, 0.7);
+		border-right: 2px solid rgba(255, 228, 102, 0.7);
+	}
+
+	.input-w-label {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: center;
+		height: 100%;
+		padding: 0 0.5rem;
+	}
+
 </style>
