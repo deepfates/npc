@@ -194,10 +194,10 @@ onDestroy(() => {
 				<span>>&nbsp;</span>
 				<!-- svelte-ignore a11y-autofocus -->
 				<input autofocus placeholder={suggestion} bind:value={command} on:keydown={handleKeyDown} class="commandline"/>
-				<button on:click={sendCommand} class="input-button" title="Send command">⏵</button>
-				<button on:click={stepAgent} class="input-button" title="NPC play">⏯</button>
-				<button on:click={toggleAuto} class="input-button {auto ? 'toggled' : ''}" title="NPC autoplay">⏭</button>
-				<button on:click={toggleShem} class="input-button {showShem ? 'toggled' : ''}" title="Edit NPC">⏏</button>
+				<button on:click={sendCommand} class="input-button" title="Send command"><img alt="Play icon" src="assets/play-button.svg" /></button>
+				<button on:click={stepAgent} class="input-button" title="NPC play"><img alt="Play next icon" src="assets/play-track-next.svg" /></button>
+				<button on:click={toggleAuto} class="input-button {auto ? 'toggled' : ''}" title="NPC autoplay"><img alt="Fast forward icon" src="assets/play-forwards.svg" /></button>
+				<button on:click={toggleShem} class="input-button {showShem ? 'toggled' : ''}" title="Edit NPC"><img alt="Eject icon" src="assets/eject.svg" /></button>
 			</div>
 		</div>
 		{#if showShem}
@@ -296,6 +296,10 @@ onDestroy(() => {
 		box-shadow: 1px 1px 0 1px rgba(24, 19, 0, 0.5);
 		border-bottom: 2px solid rgba(255, 228, 102, 0.5);
 		border-right: 2px solid rgba(255, 228, 102, 0.5);
+	}
+
+	.input-button img {
+		height: 100%;
 	}
 	/* on hover, the button background lights up. on click it darkens a little */
 	.input-button:hover {
