@@ -5,10 +5,9 @@ from flask import Flask, send_from_directory, request
 from waitress import serve # type: ignore
 from uuid import uuid4
 from npc.game import Game
-from npc.apps import Summarizer, DalleApp
+from npc.apps import Summarizer, generate_image
 
 app = Flask(__name__)
-dalle = DalleApp("256x256")
 summarizer = Summarizer()
 
 # Utilities for operating the game
@@ -65,7 +64,7 @@ async def get_image(session_id):
     prompt = get_prompt(game_state)
     # print(prompt)
     # output = await diffusion.get_image(prompt)
-    output = await dalle.get_image(prompt)
+    output = await generate_image(prompt)
     resp = {'image_url': output}
     # print(resp)
     return resp
