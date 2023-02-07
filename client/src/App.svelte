@@ -15,7 +15,7 @@ let moves = "0";
 let loading = 0;
 let background = "";
 
-let suggestion = "Look around";
+let suggestion = "Look";
 let command = "";
 
 let thoughts = "";
@@ -65,7 +65,7 @@ $: sendCommand = async () => {
 	await fetch(`./api/step_world/${sessionId}/${sent}`)
 	.then(response => response.json())
 	.then(data => {
-		console.log(data);
+		// console.log(data);
 		// location is just the first line of the descriptioni
 		location = data.description.split("\n")[0];
 		output = data.feedback.replace(location, "", 1);
@@ -83,7 +83,6 @@ $: sendCommand = async () => {
 	});
 };
 
-$: console.log(loading)
 
 function handleKeyDown(event) {
 	if (event.key === "Enter") {
@@ -148,7 +147,7 @@ function toggleShem() {
 // start a game when the page loads
 onMount(async () => {
   await startGame();
-  setTimeout(sendCommand, 1000);
+  setTimeout(stepAgent, 1000);
 });
 
 window.addEventListener('beforeunload', () => {

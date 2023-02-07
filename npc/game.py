@@ -2,8 +2,7 @@ import textworld # type: ignore
 from npc.chain import NPC
 from npc.prompts import SHEM
 from npc.utils import format_scene, format_command, format_notes, format_toks
-from langchain.agents import Tool
-from langchain.callbacks import get_openai_callback
+from langchain.callbacks import get_openai_callback # type: ignore
 import time
 
 STUCK_LENGTH = 2
@@ -101,11 +100,12 @@ class Game():
             while not done:
                 i += 1
                 print("#"*50, i)
+                print(format_scene(game_state))
                 # This is where the action happens
                 resp = self.step_agent()
                 command = resp['command']
-                command = self.check_stuck(command)
-
+                print(f"({resp['notes']})")
+                print(">",command)
                 # Step the game world
                 game_state = self.step_world(command)
                 if i >= self.max_steps:

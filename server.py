@@ -1,7 +1,7 @@
 # This is a flask server to play the game.
 # It serves the static files for the Svelte frontend and the API for the game.
 from typing import Dict
-from flask import Flask, send_from_directory, request
+from flask import Flask, send_from_directory, request # type: ignore
 from waitress import serve # type: ignore
 from uuid import uuid4
 from npc.game import Game
@@ -40,7 +40,7 @@ def start():
 def stop(session_id):
     del games[session_id]
     resp = {"sessionId": session_id}
-    print(resp)
+    # print(resp)
     return resp
 
 @app.route("/api/step_world/<session_id>/<command>")
@@ -83,7 +83,7 @@ async def set_shem():
     game = games[session_id]
     game.new_npc(shem, mem_length, stuck_length, temp, toks)
     resp = {"sessionId": session_id, "shem": shem, "memLength": mem_length, "stuckLength": stuck_length, "llmTemp": temp, "llmTokens": toks}
-    print(resp)
+    # print(resp)
     return resp
 
 
