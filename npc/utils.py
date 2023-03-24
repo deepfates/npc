@@ -9,7 +9,7 @@ def format_scene(game_state):
     #     description = game_state.description
     scene = f"""{description}{game_state.feedback}(Score: {game_state.score}/{game_state.max_score}, Moves: {game_state.moves})
 """
-    print(scene)
+    # print(scene)
     return scene
 
 def format_intermediate_steps(steps):
@@ -24,7 +24,7 @@ def format_command(response):
     command = command.strip()
     if command is None or command == "":
         print("ERROR - no command")
-    print(f"    > {command}")
+    # print(f"    > {command}")
     return command
 
 cents_per_token = 2/1000
@@ -35,5 +35,5 @@ def format_toks(toks):
 def format_notes(response):
     keys = ['simulation', 'plan']
     notes = "\n".join([f"{response[k]}" for k in keys])
-    print(notes)
+    # print(notes)
     return notes

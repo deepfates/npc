@@ -132,3 +132,4 @@ dmypy.json
 *.z5
 log.md
 npc/run@t001.md
+client/public/assets/gen/
